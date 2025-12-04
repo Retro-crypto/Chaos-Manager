@@ -1,0 +1,11 @@
+# Ignorer le dossier lourd de l'environnement virtuel
+.venv/
+
+# Ignorer les fichiers temporaires de Python
+__pycache__/
+
+# Ignorer le fichier contenant les clés secrètes (CRUCIAL)
+.env
+
+# Ignorer les fichiers système Mac/Windows inutiles
+.DS_Store
