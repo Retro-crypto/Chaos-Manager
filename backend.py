@@ -1,51 +1,44 @@
 import os
-import datetime
 import google.generativeai as genai
-from dotenv import load_dotenv
+import datetime
 from ics import Calendar, Event
+import json
 
-# Charger les variables d'environnement
-load_dotenv()
-
-# Configurer l'API
+# Configuration API
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 def get_current_context():
     now = datetime.datetime.now()
-    # On donne le jour de la semaine et la date précise pour aider l'IA
     return f"Nous sommes le {now.strftime('%A %d %B %Y')}. L'heure actuelle est {now.strftime('%H:%M')}."
 
-# backend.py (Mise à jour)
-
-def parse_schedule(user_input, preferences):
-    # On construit un contexte riche avec les préférences de l'utilisateur
+def parse_schedule(user_input, user_profile):
+    # On construit le prompt psychologique
     system_instruction = f"""
-    Tu es un assistant d'organisation d'élite.
+    Tu es un Expert en Productivité et en Psychologie Comportementale.
     
-    PARAMÈTRES UTILISATEUR :
-    - Intensité des blocs de travail : {preferences['intensity']}
-    - Préférence de répartition : {preferences['distribution']}
-    - Heure de lever : {preferences['wake_up']}
+    PROFIL DE L'UTILISATEUR (Ce qu'il t'a avoué) :
+    - Son Frein Principal : {user_profile['pain']}
+    - Son Rythme Biologique : {user_profile['rhythm']}
+    - Son Carburant (Motivation) : {user_profile['fuel']}
     
     TA MISSION :
-    1. Analyse le texte de l'utilisateur (ses contraintes).
-    2. Génère une liste d'événements JSON précise (dates ISO 8601).
-    3. Rédige un "Conseil Stratégique" (coach_message) qui explique pourquoi tu as agencé la semaine comme ça, en t'adaptant à son profil. Sois percutant, tutoie-le.
+    1. Analyse ses contraintes (texte) à travers le prisme de son profil.
+    2. Crée un planning JSON réaliste.
+    3. DÉFINIS SON ARCHÉTYPE (Un titre cool et percutant, ex: "Stratège Nocturne", "Guerrier de l'Urgence").
+    4. Rédige une analyse (pourquoi ce planning est fait pour lui).
     
-    FORMAT DE RÉPONSE ATTENDU (JSON STRICT SEULEMENT) :
+    FORMAT JSON ATTENDU (STRICT) :
     {{
         "planning": [
-            {{ "titre": "...", "start_iso": "YYYY-MM-DDTHH:MM:SS", "end_iso": "...", "categorie": "Travail/Sport/Perso", "description": "..." }}
+            {{ "titre": "...", "start_iso": "YYYY-MM-DDTHH:MM:SS", "end_iso": "...", "categorie": "...", "description": "..." }}
         ],
-        "coach_message": "Ton message d'analyse ici..."
+        "archetype": "Le Titre de son Archétype",
+        "analysis": "L'explication psychologique et stratégique..."
     }}
     """
     
-    # Appel à Gemini (Flash est suffisant)
     model = genai.GenerativeModel('gemini-2.5-flash')
-    
-    # On combine les instructions et l'input
-    full_prompt = f"{system_instruction}\n\nINPUT UTILISATEUR : {user_input}"
+    full_prompt = f"{system_instruction}\n\nCONTEXTE TEMPOREL: {get_current_context()}\n\nCONTRAINTES UTILISATEUR : {user_input}"
     
     try:
         response = model.generate_content(full_prompt)
@@ -53,21 +46,21 @@ def parse_schedule(user_input, preferences):
     except Exception as e:
         return f"Erreur API : {e}"
 
-# ATTENTION : Il faut aussi adapter légèrement la fonction ICS pour qu'elle lise la nouvelle structure
 def generate_ics_file(json_data):
     c = Calendar()
     try:
-        # Si json_data est le dictionnaire complet, on prend juste la liste "planning"
-        events_list = json_data.get("planning", []) if isinstance(json_data, dict) else json_data
+        # Gestion robuste : soit on reçoit le dict complet, soit juste la liste
+        data_source = json_data.get("planning", []) if isinstance(json_data, dict) else json_data
         
-        for item in events_list:
+        for item in data_source:
             e = Event()
             e.name = item.get("titre", "Event")
             e.begin = item.get("start_iso")
             e.end = item.get("end_iso")
             e.description = item.get("description", "")
+            if item.get("categorie"):
+                e.description += f"\n[Type: {item['categorie']}]"
             c.events.add(e)
         return c.serialize()
     except Exception as e:
         return None
-
