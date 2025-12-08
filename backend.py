@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 # Chargement des variables d'environnement (si local)
 load_dotenv()
-
+ 
 # Configuration API
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
