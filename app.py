@@ -5,13 +5,14 @@ from backend import parse_schedule, generate_ics_file
 
 st.set_page_config(page_title="Chaos Manager", page_icon="⚡", layout="wide")
 
-# --- CSS MAGIQUE (Effet Flou + Style) ---
+# --- CSS MAGIQUE (Effet Flou + Style Archétype) ---
 st.markdown("""
 <style>
 .blur-text {
-    filter: blur(5px);
+    filter: blur(4px);
     user-select: none;
-    color: #666;
+    color: #333;
+    opacity: 0.7;
 }
 .archetype-box {
     background-color: #d4edda;
@@ -41,13 +42,12 @@ with st.sidebar:
     pain = st.radio(
         "Qu'est-ce qui te bloque le plus ?",
         [
-            "🤯 Paralysie (Trop de trucs, je bug)",
+            "🤯 Paralysie (Trop de choix, je bug)",
             "🛑 Procrastination (Peur de mal faire)",
             "🦋 Papillonnage (Je finis rien)",
             "🔋 Fatigue (Plus de jus après 14h)",
             "⏰ Urgence (Je ne bosse que sous pression)"
-        ],
-        label_visibility="collapsed"
+        ]
     )
     
     st.subheader("2. Ton Rythme ⚡")
@@ -93,17 +93,18 @@ if st.button("🚀 Analyser mon Profil & Générer", type="primary"):
                 # APPEL CERVEAU
                 raw_resp = parse_schedule(user_input, profile)
                 
-                # NETTOYAGE
+                # NETTOYAGE JSON
                 cleaned = raw_resp.replace("```json", "").replace("```", "").strip()
                 data = json.loads(cleaned)
                 
                 # --- RÉVÉLATION (GRATUIT) ---
                 
                 # 1. L'Archétype (Le Miroir)
+                archetype_title = data.get('archetype', 'Stratège Inconnu')
                 st.markdown(f"""
                 <div class="archetype-box">
                     <h3>👤 TON ARCHÉTYPE DÉTECTÉ :</h3>
-                    <h2>{data.get('archetype', 'Stratège Inconnu')}</h2>
+                    <h2>{archetype_title}</h2>
                 </div>
                 """, unsafe_allow_html=True)
                 
@@ -125,13 +126,16 @@ if st.button("🚀 Analyser mon Profil & Générer", type="primary"):
                 with col1:
                     st.markdown('<div class="locked-section">', unsafe_allow_html=True)
                     st.warning("🔒 **Analyse Stratégique Verrouillée**")
-                    st.markdown(f"**Pourquoi l'IA t'a identifié comme '{data.get('archetype')}' ?**")
-                    st.markdown("Débloque l'analyse pour comprendre :")
-                    st.markdown("- *Comment contourner ton blocage '" + pain.split('(')[0].strip() + "'*")
-                    st.markdown("- *Pourquoi ces horaires sont optimisés pour ton rythme '" + rhythm + "'*")
+                    st.markdown(f"**Pourquoi l'IA t'a identifié comme '{archetype_title}' ?**")
                     
-                    # Texte flouté pour teaser
-                    st.markdown('<p class="blur-text">L analyse montre que ton pic de cortisol est mal géré le matin, c est pourquoi j ai déplacé les tâches complexes à 10h pour...</p>', unsafe_allow_html=True)
+                    # Texte Teaser (Dynamique selon le profil)
+                    pain_short = pain.split('(')[0].strip()
+                    st.markdown(f"- *Comment contourner ton blocage '{pain_short}'*")
+                    st.markdown(f"- *Pourquoi ces horaires sont optimisés pour ton rythme '{rhythm}'*")
+                    
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    # Texte flouté pour frustrer (dans le bon sens)
+                    st.markdown('<p class="blur-text">L analyse montre que ton pic de cortisol est mal géré le matin, c est pourquoi j ai déplacé les tâches complexes à 10h pour maximiser ta dopamine naturelle...</p>', unsafe_allow_html=True)
                     st.markdown('</div>', unsafe_allow_html=True)
 
                 with col2:
@@ -145,7 +149,7 @@ if st.button("🚀 Analyser mon Profil & Générer", type="primary"):
                     # --- TON LIEN STRIPE ICI ---
                     st.link_button(
                         "🔓 DÉBLOQUER (9.90€)", 
-                        "https://buy.stripe.com/TON_LIEN_ICI"
+                        "https://buy.stripe.com/00w7sN5ZW5gp9GggtP0RG00"
                     )
                     st.caption("Accès immédiat et à vie.")
 

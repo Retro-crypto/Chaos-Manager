@@ -3,6 +3,10 @@ import google.generativeai as genai
 import datetime
 from ics import Calendar, Event
 import json
+from dotenv import load_dotenv
+
+# Chargement des variables d'environnement (si local)
+load_dotenv()
 
 # Configuration API
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
@@ -12,20 +16,20 @@ def get_current_context():
     return f"Nous sommes le {now.strftime('%A %d %B %Y')}. L'heure actuelle est {now.strftime('%H:%M')}."
 
 def parse_schedule(user_input, user_profile):
-    # On construit le prompt psychologique
+    # On construit le prompt psychologique "Barnum"
     system_instruction = f"""
     Tu es un Expert en Productivité et en Psychologie Comportementale.
     
     PROFIL DE L'UTILISATEUR (Ce qu'il t'a avoué) :
-    - Son Frein Principal : {user_profile['pain']}
-    - Son Rythme Biologique : {user_profile['rhythm']}
-    - Son Carburant (Motivation) : {user_profile['fuel']}
+    - Son Frein Principal : {user_profile.get('pain', 'Non spécifié')}
+    - Son Rythme Biologique : {user_profile.get('rhythm', 'Non spécifié')}
+    - Son Carburant (Motivation) : {user_profile.get('fuel', 'Non spécifié')}
     
     TA MISSION :
     1. Analyse ses contraintes (texte) à travers le prisme de son profil.
-    2. Crée un planning JSON réaliste.
-    3. DÉFINIS SON ARCHÉTYPE (Un titre cool et percutant, ex: "Stratège Nocturne", "Guerrier de l'Urgence").
-    4. Rédige une analyse (pourquoi ce planning est fait pour lui).
+    2. Crée un planning JSON réaliste avec des dates ISO 8601.
+    3. DÉFINIS SON ARCHÉTYPE (Un titre cool et percutant, ex: "Stratège Nocturne", "Guerrier de l'Urgence", "Architecte Anxieux").
+    4. Rédige une analyse courte (pourquoi ce planning est fait pour lui).
     
     FORMAT JSON ATTENDU (STRICT) :
     {{
@@ -37,7 +41,8 @@ def parse_schedule(user_input, user_profile):
     }}
     """
     
-    model = genai.GenerativeModel('gemini-2.5-flash')
+    model = genai.GenerativeModel('gemini-2.0-flash')
+    
     full_prompt = f"{system_instruction}\n\nCONTEXTE TEMPOREL: {get_current_context()}\n\nCONTRAINTES UTILISATEUR : {user_input}"
     
     try:
