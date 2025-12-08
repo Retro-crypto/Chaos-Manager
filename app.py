@@ -1,157 +1,136 @@
 import streamlit as st
 import json
 import pandas as pd
+import plotly.express as px
 from backend import parse_schedule, generate_ics_file
 
-st.set_page_config(page_title="Chaos Manager", page_icon="⚡", layout="wide")
+st.set_page_config(page_title="Chaos Manager Pro", page_icon="🧠", layout="wide")
 
-# --- CSS MAGIQUE (Effet Flou + Style Archétype) ---
+# --- CSS EXPERT ---
 st.markdown("""
 <style>
-.blur-text {
-    filter: blur(4px);
-    user-select: none;
-    color: #333;
-    opacity: 0.7;
-}
-.archetype-box {
-    background-color: #d4edda;
-    color: #155724;
-    padding: 20px;
-    border-radius: 10px;
-    border: 1px solid #c3e6cb;
-    text-align: center;
-    margin-bottom: 20px;
-}
-.locked-section {
-    border: 2px dashed #ff4b4b;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-    background-color: #fff5f5;
-}
+.big-font { font-size:20px !important; font-weight: bold; }
+.blur-text { filter: blur(5px); user-select: none; color: #666; }
+.locked-section { border: 2px dashed #ff4b4b; padding: 20px; border-radius: 10px; background-color: #fff9f9; text-align: center;}
+.success-box { padding:15px; border-radius:10px; background-color:#d4edda; color:#155724; border:1px solid #c3e6cb; text-align:center;}
 </style>
 """, unsafe_allow_html=True)
 
-# --- SIDEBAR : LE DIAGNOSTIC ---
+# --- SIDEBAR (Minimaliste maintenant) ---
 with st.sidebar:
-    st.header("🧬 Ton ADN Productif")
-    st.write("Réponds honnêtement. L'IA adapte la stratégie à ta psychologie.")
-    
-    st.subheader("1. Ton Ennemi 👿")
-    pain = st.radio(
-        "Qu'est-ce qui te bloque le plus ?",
-        [
-            "🤯 Paralysie (Trop de choix, je bug)",
-            "🛑 Procrastination (Peur de mal faire)",
-            "🦋 Papillonnage (Je finis rien)",
-            "🔋 Fatigue (Plus de jus après 14h)",
-            "⏰ Urgence (Je ne bosse que sous pression)"
-        ]
-    )
-    
-    st.subheader("2. Ton Rythme ⚡")
-    rhythm = st.select_slider(
-        "Quand es-tu un Génie ?",
-        options=["🌅 Matin (5h-11h)", "☀️ Journée (10h-16h)", "🌙 Soir (20h-2h)", "⚡ Par à-coups (Aléatoire)"]
-    )
-    
-    st.subheader("3. Ton Carburant ⛽")
-    fuel = st.selectbox(
-        "Qu'est-ce qui te fait avancer ?",
-        [
-            "⚔️ Le Défi (Prouver que je suis le meilleur)",
-            "🛡️ La Sécurité (Peur de l'échec)",
-            "🎨 Le Sens (Créer du beau/utile)",
-            "✅ La Coche (Plaisir de finir une liste)"
-        ]
-    )
-    
-    st.divider()
-    st.caption("Données confidentielles utilisées uniquement pour la génération.")
+    st.header("🧠 Chaos Manager V3")
+    st.info("Système d'ingénierie temporelle assisté par IA.")
+    st.markdown("---")
+    st.write("Le diagnostic se base sur le modèle **Big Five Productivity**.")
 
-# --- PAGE PRINCIPALE ---
-st.title("⚡ Chaos Manager")
-st.markdown("#### L'IA qui ne te donne pas juste un planning, mais *ta* stratégie.")
+# --- HEADER ---
+st.title("🧠 Chaos Manager : Expert Edition")
+st.subheader("Ne planifie pas juste ta semaine. Hacke ton cerveau.")
 
-# Zone de saisie
-user_input = st.text_area(
-    "📥 Vide ton cerveau ici (Vrac total accepté) :", 
-    height=120, 
-    placeholder="Ex: J'ai partiel de physique vendredi, MMA mardi soir, rappeler maman, acheter des pâtes, projet Python à rendre dimanche..."
-)
+# --- LES 3 SONDES PSYCHIQUES ---
+col1, col2 = st.columns(2)
 
-if st.button("🚀 Analyser mon Profil & Générer", type="primary"):
-    if not user_input:
-        st.warning("Il faut me donner de la matière (tes tâches) !")
+with col1:
+    st.markdown("### 1. Autopsie de l'Échec 💀")
+    input_echec = st.text_area(
+        "Pense à ton dernier projet raté. Qu'est-ce qui a VRAIMENT causé l'échec ?",
+        placeholder="Ex: J'ai abandonné quand c'est devenu dur (perte de sens), ou j'ai voulu faire trop parfait (perfectionnisme)...",
+        height=120
+    )
+
+    st.markdown("### 2. Cartographie Énergie ⚡")
+    input_energie = st.text_area(
+        "Comment fonctionne ton moteur ?",
+        placeholder="Ex: Je suis un sprinter (gros rush puis crash), ou j'ai besoin de deadline pour démarrer...",
+        height=120
+    )
+
+with col2:
+    st.markdown("### 3. La Mission 🎯")
+    input_mission = st.text_area(
+        "Vide ton cerveau (Liste des tâches brute) :",
+        placeholder="Ex: Partiel physique vendredi, MMA mardi 19h, rendre projet Python dimanche, acheter pain...",
+        height=320
+    )
+
+# --- ACTION ---
+if st.button("🚀 LANCER LE DIAGNOSTIC & GÉNÉRER", type="primary", use_container_width=True):
+    if not input_mission:
+        st.warning("Il me faut au moins une mission (Zone 3) !")
     else:
-        with st.spinner("Connection neuronale... Profilage en cours..."):
+        with st.spinner("Analyse cognitive en cours... Calcul des scores Big Five..."):
             try:
-                # Packaging du profil
-                profile = { "pain": pain, "rhythm": rhythm, "fuel": fuel }
+                # Packaging
+                inputs = {
+                    "echec": input_echec,
+                    "energie": input_energie,
+                    "mission": input_mission
+                }
                 
-                # APPEL CERVEAU
-                raw_resp = parse_schedule(user_input, profile)
+                # APPEL BACKEND
+                raw_resp = parse_schedule(inputs)
+                data = json.loads(raw_resp)
                 
-                # NETTOYAGE JSON
-                cleaned = raw_resp.replace("```json", "").replace("```", "").strip()
-                data = json.loads(cleaned)
+                # --- RÉSULTATS ---
                 
-                # --- RÉVÉLATION (GRATUIT) ---
-                
-                # 1. L'Archétype (Le Miroir)
-                archetype_title = data.get('archetype', 'Stratège Inconnu')
-                st.markdown(f"""
-                <div class="archetype-box">
-                    <h3>👤 TON ARCHÉTYPE DÉTECTÉ :</h3>
-                    <h2>{archetype_title}</h2>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # 2. Le Planning (La Preuve)
-                planning = data.get("planning", [])
-                if planning:
-                    df = pd.DataFrame(planning)
-                    st.dataframe(
-                        df[["titre", "start_iso", "end_iso", "categorie"]],
-                        use_container_width=True, 
-                        hide_index=True
-                    )
-                
-                # --- LE PÉAGE (VERROUILLÉ) ---
+                # 1. ARCHÉTYPE & RADAR (L'Effet Wow)
                 st.markdown("---")
+                col_res1, col_res2 = st.columns([1, 1])
                 
-                col1, col2 = st.columns([1.5, 1])
+                with col_res1:
+                    st.markdown(f"<div class='success-box'><h2>👤 {data.get('archetype', 'Inconnu')}</h2></div>", unsafe_allow_html=True)
+                    st.caption("Archétype calculé selon tes réponses.")
+                    
+                    # Graphique Radar avec Plotly
+                    scores = data.get("scores", {"Focus": 50, "Discipline": 50})
+                    df_scores = pd.DataFrame(dict(
+                        r=list(scores.values()),
+                        theta=list(scores.keys())
+                    ))
+                    fig = px.line_polar(df_scores, r='r', theta='theta', line_close=True, range_r=[0,100])
+                    fig.update_traces(fill='toself', line_color='#FF4B4B')
+                    fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+                    st.plotly_chart(fig, use_container_width=True)
+
+                with col_res2:
+                    # 2. LE PLANNING (Preuve)
+                    st.subheader("📅 Ton Planning Stratégique")
+                    planning = data.get("planning", [])
+                    if planning:
+                        df = pd.DataFrame(planning)
+                        st.dataframe(df[["titre", "start_iso", "end_iso", "categorie"]], hide_index=True, use_container_width=True)
+
+                # --- LE PÉAGE (L'EXPERTISE) ---
+                st.markdown("---")
+                col_lock, col_buy = st.columns([2, 1])
                 
-                with col1:
+                with col_lock:
                     st.markdown('<div class="locked-section">', unsafe_allow_html=True)
-                    st.warning("🔒 **Analyse Stratégique Verrouillée**")
-                    st.markdown(f"**Pourquoi l'IA t'a identifié comme '{archetype_title}' ?**")
+                    st.warning("🔒 **DIAGNOSTIC CLINIQUE VERROUILLÉ**")
+                    st.markdown("### Ce que l'IA a découvert sur toi :")
                     
-                    # Texte Teaser (Dynamique selon le profil)
-                    pain_short = pain.split('(')[0].strip()
-                    st.markdown(f"- *Comment contourner ton blocage '{pain_short}'*")
-                    st.markdown(f"- *Pourquoi ces horaires sont optimisés pour ton rythme '{rhythm}'*")
+                    # Teaser dynamique
+                    st.write(f"**Diagnostic :** {data.get('diagnosis', '')[:50]}...")
+                    st.markdown('<p class="blur-text">Le sujet démontre une forte capacité d impulsion mais un score de structure critique (30/100). Cela explique les échecs récents. La stratégie adoptée est le Time-Boxing inversé pour...</p>', unsafe_allow_html=True)
                     
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    # Texte flouté pour frustrer (dans le bon sens)
-                    st.markdown('<p class="blur-text">L analyse montre que ton pic de cortisol est mal géré le matin, c est pourquoi j ai déplacé les tâches complexes à 10h pour maximiser ta dopamine naturelle...</p>', unsafe_allow_html=True)
+                    st.write("**Le Hack Cognitif appliqué :**")
+                    st.markdown('<p class="blur-text">Pour contrer ton profil Sprinter, j ai segmenté les tâches en blocs de 45min avec interdiction de pause...</p>', unsafe_allow_html=True)
                     st.markdown('</div>', unsafe_allow_html=True)
 
-                with col2:
-                    st.info("📦 **PACK COMPLET**")
+                with col_buy:
+                    st.info("📦 **PACK EXPERT**")
                     st.markdown("""
-                    - 📥 Export Agenda (.ics)
-                    - 🧠 **Ton Analyse Psycho-Cognitive**
-                    - 💡 Stratégie sur-mesure
+                    - 📊 **Ton Bilan Psychométrique complet**
+                    - 🧠 **Le Mode d'emploi de ton cerveau**
+                    - 📥 **Export Agenda (.ics)**
                     """)
                     
-                    # --- TON LIEN STRIPE ICI ---
+                    # --- TON LIEN STRIPE LIVE ICI ---
                     st.link_button(
-                        "🔓 DÉBLOQUER (9.90€)", 
+                        "🔓 DÉBLOQUER L'EXPERTISE (9.90€)", 
                         "https://buy.stripe.com/00w7sN5ZW5gp9GggtP0RG00"
                     )
-                    st.caption("Accès immédiat et à vie.")
+                    st.caption("Investis en toi-même.")
 
             except Exception as e:
-                st.error(f"Erreur d'analyse : {e}")
+                st.error(f"Erreur système : {e}")
