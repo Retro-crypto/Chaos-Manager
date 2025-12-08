@@ -3,7 +3,8 @@ import google.generativeai as genai
 import datetime
 from ics import Calendar, Event
 import json
-import re  # On importe les expressions régulières pour le nettoyage chirurgical
+import re
+import ast  # <--- La nouvelle arme secrète
 from dotenv import load_dotenv
 
 # Chargement des variables (si local)
@@ -16,64 +17,81 @@ def get_current_context():
     now = datetime.datetime.now()
     return f"Nous sommes le {now.strftime('%A %d %B %Y')}. L'heure actuelle est {now.strftime('%H:%M')}."
 
-def clean_json_response(text):
+def clean_and_parse_json(text):
     """
-    Fonction de nettoyage chirurgical.
-    Elle cherche le premier '{' et le dernier '}' pour extraire uniquement le JSON,
-    ignorant le blabla avant ou après.
+    Fonction intelligente qui tente de réparer le JSON malformé.
     """
+    # 1. On extrait le bloc entre accolades {}
+    match = re.search(r"\{.*\}", text, re.DOTALL)
+    if match:
+        cleaned_text = match.group(0)
+    else:
+        return {"error": "Pas de JSON trouvé"}
+
+    # 2. Tentative 1 : JSON Standard (Strict)
     try:
-        # On cherche le pattern JSON
-        match = re.search(r"\{.*\}", text, re.DOTALL)
-        if match:
-            return match.group(0)
-        else:
-            return text # Si on trouve rien, on renvoie tel quel (ça plantera plus loin mais on saura pourquoi)
-    except:
-        return text
+        return json.loads(cleaned_text)
+    except json.JSONDecodeError:
+        pass # On ne panique pas, on passe au plan B
+
+    # 3. Tentative 2 : Format Python (Simple Quotes)
+    try:
+        return ast.literal_eval(cleaned_text)
+    except Exception as e:
+        return {"error": f"Échec lecture JSON: {e}"}
 
 def parse_schedule(user_input, user_profile):
     system_instruction = f"""
-    Tu es un Expert en Productivité et Psychologie.
+    Tu es un Expert en Productivité.
     
-    PROFIL UTILISATEUR :
+    PROFIL :
     - Frein : {user_profile.get('pain', 'Non défini')}
     - Rythme : {user_profile.get('rhythm', 'Non défini')}
     - Moteur : {user_profile.get('fuel', 'Non défini')}
     
-    MISSION :
-    1. Analyse les tâches.
-    2. Crée un planning JSON.
-    3. Trouve un ARCHÉTYPE percutant.
-    4. Rédige une analyse psycho.
+    TACHE :
+    Génère un planning adapté et une analyse.
     
-    FORMAT JSON STRICT :
+    IMPORTANT : Réponds UNIQUEMENT avec un JSON valide. Utilise des guillemets doubles (") pour les clés et les textes.
+    
+    FORMAT JSON :
     {{
         "planning": [
-            {{ "titre": "...", "start_iso": "YYYY-MM-DDTHH:MM:SS", "end_iso": "...", "categorie": "...", "description": "..." }}
+            {{ "titre": "Titre", "start_iso": "YYYY-MM-DDTHH:MM:SS", "end_iso": "...", "categorie": "Travail", "description": "..." }}
         ],
-        "archetype": "Titre Stylé",
-        "analysis": "Ton analyse ici..."
+        "archetype": "Nom de l'archétype",
+        "analysis": "Analyse..."
     }}
     """
     
-    # ON UTILISE LA ROLLS ROYCE (Stable et Intelligente)
+    # On garde le modèle Pro, il est meilleur
     model = genai.GenerativeModel('gemini-1.5-pro')
     
     full_prompt = f"{system_instruction}\n\nCONTEXTE: {get_current_context()}\n\nINPUT: {user_input}"
     
     try:
         response = model.generate_content(full_prompt)
-        # On nettoie la réponse avant de la renvoyer
-        return clean_json_response(response.text)
+        # On utilise notre nouvelle fonction de parsing robuste
+        parsed_data = clean_and_parse_json(response.text)
+        
+        # Si la fonction retourne le dictionnaire directement, on le renvoie en string JSON pour l'app
+        return json.dumps(parsed_data)
+        
     except Exception as e:
-        return f"{{ 'error': 'Erreur API : {e}' }}"
+        return json.dumps({"error": f"Erreur API : {e}"})
 
 def generate_ics_file(json_data):
     c = Calendar()
     try:
-        data_source = json_data.get("planning", []) if isinstance(json_data, dict) else json_data
-        for item in data_source:
+        # On s'assure d'avoir un dictionnaire
+        if isinstance(json_data, str):
+            data = json.loads(json_data)
+        else:
+            data = json_data
+            
+        events = data.get("planning", [])
+        
+        for item in events:
             e = Event()
             e.name = item.get("titre", "Event")
             e.begin = item.get("start_iso")
