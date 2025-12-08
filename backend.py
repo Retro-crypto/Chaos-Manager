@@ -3,11 +3,12 @@ import google.generativeai as genai
 import datetime
 from ics import Calendar, Event
 import json
+import re  # On importe les expressions régulières pour le nettoyage chirurgical
 from dotenv import load_dotenv
 
-# Chargement des variables d'environnement (si local)
+# Chargement des variables (si local)
 load_dotenv()
- 
+
 # Configuration API
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
@@ -15,48 +16,63 @@ def get_current_context():
     now = datetime.datetime.now()
     return f"Nous sommes le {now.strftime('%A %d %B %Y')}. L'heure actuelle est {now.strftime('%H:%M')}."
 
+def clean_json_response(text):
+    """
+    Fonction de nettoyage chirurgical.
+    Elle cherche le premier '{' et le dernier '}' pour extraire uniquement le JSON,
+    ignorant le blabla avant ou après.
+    """
+    try:
+        # On cherche le pattern JSON
+        match = re.search(r"\{.*\}", text, re.DOTALL)
+        if match:
+            return match.group(0)
+        else:
+            return text # Si on trouve rien, on renvoie tel quel (ça plantera plus loin mais on saura pourquoi)
+    except:
+        return text
+
 def parse_schedule(user_input, user_profile):
-    # On construit le prompt psychologique "Barnum"
     system_instruction = f"""
-    Tu es un Expert en Productivité et en Psychologie Comportementale.
+    Tu es un Expert en Productivité et Psychologie.
     
-    PROFIL DE L'UTILISATEUR (Ce qu'il t'a avoué) :
-    - Son Frein Principal : {user_profile.get('pain', 'Non spécifié')}
-    - Son Rythme Biologique : {user_profile.get('rhythm', 'Non spécifié')}
-    - Son Carburant (Motivation) : {user_profile.get('fuel', 'Non spécifié')}
+    PROFIL UTILISATEUR :
+    - Frein : {user_profile.get('pain', 'Non défini')}
+    - Rythme : {user_profile.get('rhythm', 'Non défini')}
+    - Moteur : {user_profile.get('fuel', 'Non défini')}
     
-    TA MISSION :
-    1. Analyse ses contraintes (texte) à travers le prisme de son profil.
-    2. Crée un planning JSON réaliste avec des dates ISO 8601.
-    3. DÉFINIS SON ARCHÉTYPE (Un titre cool et percutant, ex: "Stratège Nocturne", "Guerrier de l'Urgence", "Architecte Anxieux").
-    4. Rédige une analyse courte (pourquoi ce planning est fait pour lui).
+    MISSION :
+    1. Analyse les tâches.
+    2. Crée un planning JSON.
+    3. Trouve un ARCHÉTYPE percutant.
+    4. Rédige une analyse psycho.
     
-    FORMAT JSON ATTENDU (STRICT) :
+    FORMAT JSON STRICT :
     {{
         "planning": [
             {{ "titre": "...", "start_iso": "YYYY-MM-DDTHH:MM:SS", "end_iso": "...", "categorie": "...", "description": "..." }}
         ],
-        "archetype": "Le Titre de son Archétype",
-        "analysis": "L'explication psychologique et stratégique..."
+        "archetype": "Titre Stylé",
+        "analysis": "Ton analyse ici..."
     }}
     """
     
-    model = genai.GenerativeModel('gemini-2.0-flash')
+    # ON UTILISE LA ROLLS ROYCE (Stable et Intelligente)
+    model = genai.GenerativeModel('gemini-1.5-pro')
     
-    full_prompt = f"{system_instruction}\n\nCONTEXTE TEMPOREL: {get_current_context()}\n\nCONTRAINTES UTILISATEUR : {user_input}"
+    full_prompt = f"{system_instruction}\n\nCONTEXTE: {get_current_context()}\n\nINPUT: {user_input}"
     
     try:
         response = model.generate_content(full_prompt)
-        return response.text
+        # On nettoie la réponse avant de la renvoyer
+        return clean_json_response(response.text)
     except Exception as e:
-        return f"Erreur API : {e}"
+        return f"{{ 'error': 'Erreur API : {e}' }}"
 
 def generate_ics_file(json_data):
     c = Calendar()
     try:
-        # Gestion robuste : soit on reçoit le dict complet, soit juste la liste
         data_source = json_data.get("planning", []) if isinstance(json_data, dict) else json_data
-        
         for item in data_source:
             e = Event()
             e.name = item.get("titre", "Event")
