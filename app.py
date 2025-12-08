@@ -3,72 +3,123 @@ import json
 import pandas as pd
 from backend import parse_schedule, generate_ics_file
 
-# --- CONFIGURATION DU SITE ---
-st.set_page_config(page_title="Chaos Manager", page_icon="⚡", layout="centered")
+st.set_page_config(page_title="Chaos Manager", page_icon="⚡", layout="wide")
 
-# --- HEADER PRO ---
+# --- CSS POUR FLOUTER (EFFET LOCK) ---
+st.markdown("""
+<style>
+.blur-text {
+    color: transparent;
+    text-shadow: 0 0 8px rgba(0,0,0,0.5);
+    user-select: none;
+}
+.locked-box {
+    border: 1px solid #FF4B4B;
+    background-color: #FF4B4B1A;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# --- SIDEBAR : LE PROFILAGE ---
+with st.sidebar:
+    st.header("🧠 Tes Préférences")
+    st.write("Dis-moi comment tu fonctionnes.")
+    
+    wake_up = st.time_input("Je me lève à :", value=None)
+    
+    intensity = st.select_slider(
+        "Durée max de concentration (Deep Work) :",
+        options=["30 min (Pomodoro)", "1h", "2h", "4h (Mode Guerrier)"],
+        value="2h"
+    )
+    
+    distribution = st.radio(
+        "Répartition de l'effort :",
+        ["⚡ Gros blocs (Libre ensuite)",
+         "💧 Étaler (Régularité)"]
+    )
+    
+    st.divider()
+    st.caption("L'IA adapte la stratégie à ces paramètres.")
+
+# --- MAIN PAGE ---
 st.title("⚡ Chaos Manager")
 st.subheader("L'IA qui range ta vie à ta place.")
-st.info("💡 **Offre de Lancement :** Teste l'outil gratuitement ci-dessous. Pour exporter vers Google/Apple Agenda, débloque la version complète.")
 
-# --- ZONE DE DÉMO ---
 user_input = st.text_area(
-    "1. Raconte ta semaine en vrac (Audio ou Texte) :", 
+    "1. Raconte ta semaine en vrac :", 
     height=150, 
-    placeholder="Exemple : J'ai cours de physique tous les mardis matin, je dois aller au MMA le jeudi à 19h, et rappelle-moi de bosser mon projet ce week-end..."
+    placeholder="Ex: J'ai un partiel de physique vendredi, je dois réviser 10h au total. Je veux faire du sport 3x cette semaine le soir..."
 )
 
-if st.button("🔍 Prévisualiser mon Planning", type="primary"):
+if st.button("Générer mon Planning", type="primary"):
     if not user_input:
-        st.warning("Écris quelque chose pour tester la magie !")
+        st.warning("Remplis d'abord tes contraintes !")
     else:
-        with st.spinner("Analyse du chaos en cours..."):
+        with st.spinner("Analyse de ton profil psychologique et temporel..."):
             try:
-                # Appel IA
-                raw_response = parse_schedule(user_input)
+                # Packaging des préférences
+                prefs = {
+                    "intensity": intensity,
+                    "distribution": distribution,
+                    "wake_up": str(wake_up) if wake_up else "08:00"
+                }
+                
+                # APPEL BACKEND
+                raw_response = parse_schedule(user_input, prefs)
+                
+                # NETTOYAGE
                 cleaned = raw_response.replace("```json", "").replace("```", "").strip()
-                data = json.loads(cleaned)
+                data_obj = json.loads(cleaned)
                 
-                # PREUVE VISUELLE (Le "Wow")
-                st.success(f"✅ Analyse réussie ! {len(data)} événements détectés.")
-                df = pd.DataFrame(data)
+                planning_data = data_obj.get("planning", [])
+                # On garde le message pour nous (on ne l'affiche pas)
                 
-                # On affiche un tableau propre
-                st.dataframe(
-                    df[["titre", "start_iso", "end_iso", "categorie"]],
-                    column_config={
-                        "titre": "Événement",
-                        "start_iso": "Début",
-                        "end_iso": "Fin",
-                        "categorie": "Type"
-                    },
-                    use_container_width=True,
-                    hide_index=True
-                )
+                # --- AFFICHAGE ---
                 
-                # --- LE PÉAGE (Call to Action) ---
-                st.markdown("---")
-                col1, col2 = st.columns([2, 1])
-                
-                with col1:
-                    st.markdown("""
-                    ### 🔓 Débloquer mon fichier Agenda
-                    Pour ajouter ces événements directement dans **Google Agenda, Apple ou Outlook** :
-                    1. Cliquez sur le bouton pour régler l'accès (**9.90€** - Paiement Sécurisé Stripe).
-                    2. Envoyez-moi votre texte par mail (indiqué après paiement).
-                    3. Recevez votre fichier `.ics` prêt à l'emploi sous 24h.
-                    """)
-                
-                with col2:
-                    # REMPLACE L'URL CI-DESSOUS PAR TON LIEN STRIPE
-                    st.link_button(
-                        "💳 ACHETER (9.90€)", 
-                        "https://buy.stripe.com/test_aFa4gAdYxcMBbCIbZOd7q00"
+                # 1. Le Tableau (GRATUIT)
+                st.subheader("📅 Aperçu du Planning")
+                if planning_data:
+                    df = pd.DataFrame(planning_data)
+                    st.dataframe(
+                        df[["titre", "start_iso", "end_iso", "categorie"]],
+                        use_container_width=True,
+                        hide_index=True
                     )
+                
+                # 2. L'Analyse (VERROUILLÉE)
+                st.markdown("---")
+                col_lock, col_buy = st.columns([1.5, 1])
+                
+                with col_lock:
+                    st.warning("🔒 **Analyse Stratégique Verrouillée**")
+                    st.markdown("""
+                    L'IA a généré une **explication psychologique** de ce planning basée sur ton profil :
+                    - *Pourquoi ces horaires précis ?*
+                    - *Comment gérer ton énergie "Mode Guerrier" ?*
+                    - *La justification des blocs de repos.*
+                    """)
+                    # Effet visuel de texte flouté pour teaser
+                    st.markdown('<p class="blur-text">Voici pourquoi j ai placé le sport le mardi soir car ton pic de dopamine est...</p>', unsafe_allow_html=True)
+                
+                with col_buy:
+                    st.header("Débloquer tout")
+                    st.markdown("""
+                    Obtiens le **Pack Organisation** complet :
+                    1. 📤 Le fichier **.ics** (Google/Apple Agenda).
+                    2. 🧠 Le **Rapport d'Analyse** complet (PDF/Texte).
+                    3. 💡 Mes conseils personnalisés.
+                    """)
                     
-            except Exception as e:
-                st.error(f"Oups, petite erreur de lecture. Essaie de reformuler : {e}")
+                    # TON LIEN STRIPE ICI
+                    st.link_button(
+                        "🔓 DÉBLOQUER MAINTENANT (9.90€)", 
+                        "https://buy.stripe.com/TON_LIEN_ICI"
+                    )
+                    st.caption("Paiement unique. Satisfait ou remboursé.")
 
-# --- PIED DE PAGE ---
-st.markdown("---")
-st.caption("🔒 Service sécurisé. Satisfait ou remboursé. Développé par Retro Lab.")
+            except Exception as e:
+                st.error(f"Oups, erreur technique : {e}")

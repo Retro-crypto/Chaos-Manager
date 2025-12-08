@@ -15,65 +15,59 @@ def get_current_context():
     # On donne le jour de la semaine et la date précise pour aider l'IA
     return f"Nous sommes le {now.strftime('%A %d %B %Y')}. L'heure actuelle est {now.strftime('%H:%M')}."
 
-def parse_schedule(user_input):
-    # On utilise le modèle Flash pour la rapidité/coût, ou Pro pour la précision
-    model = genai.GenerativeModel('gemini-2.5-flash')
+# backend.py (Mise à jour)
+
+def parse_schedule(user_input, preferences):
+    # On construit un contexte riche avec les préférences de l'utilisateur
+    system_instruction = f"""
+    Tu es un assistant d'organisation d'élite.
     
-    current_context = get_current_context()
+    PARAMÈTRES UTILISATEUR :
+    - Intensité des blocs de travail : {preferences['intensity']}
+    - Préférence de répartition : {preferences['distribution']}
+    - Heure de lever : {preferences['wake_up']}
     
-    # LE PROMPT (C'est là que tout se joue)
-    prompt = f"""
-    CONTEXTE : {current_context}
+    TA MISSION :
+    1. Analyse le texte de l'utilisateur (ses contraintes).
+    2. Génère une liste d'événements JSON précise (dates ISO 8601).
+    3. Rédige un "Conseil Stratégique" (coach_message) qui explique pourquoi tu as agencé la semaine comme ça, en t'adaptant à son profil. Sois percutant, tutoie-le.
     
-    RÔLE : Tu es un assistant de planification expert. Ta mission est de convertir du texte en vrac en un emploi du temps structuré.
-    
-    INSTRUCTION : Analyse le texte de l'utilisateur et extrais chaque événement.
-    
-    RÈGLES STRICTES :
-    1. Retourne UNIQUEMENT du JSON valide. Pas de markdown, pas de texte avant ou après.
-    2. Format attendu : Une liste d'objets avec les clés : "titre", "start_iso" (format YYYY-MM-DDTHH:MM:SS), "end_iso", "description" (optionnel), "categorie" (ex: Sport, Travail, Santé).
-    3. Si la durée n'est pas précisée, estime une durée logique (ex: 1h pour Sport, 30min pour RDV médical).
-    4. Gère les récurrences : Si l'utilisateur dit "tous les mardis", génère les occurrences pour les 4 prochaines semaines.
-    
-    TEXTE UTILISATEUR : "{user_input}"
+    FORMAT DE RÉPONSE ATTENDU (JSON STRICT SEULEMENT) :
+    {{
+        "planning": [
+            {{ "titre": "...", "start_iso": "YYYY-MM-DDTHH:MM:SS", "end_iso": "...", "categorie": "Travail/Sport/Perso", "description": "..." }}
+        ],
+        "coach_message": "Ton message d'analyse ici..."
+    }}
     """
     
-    response = model.generate_content(prompt)
-    return response.text
+    # Appel à Gemini (Flash est suffisant)
+    model = genai.GenerativeModel('gemini-2.5-flash')
+    
+    # On combine les instructions et l'input
+    full_prompt = f"{system_instruction}\n\nINPUT UTILISATEUR : {user_input}"
+    
+    try:
+        response = model.generate_content(full_prompt)
+        return response.text
+    except Exception as e:
+        return f"Erreur API : {e}"
 
-# TEST DU SYSTÈME
-if __name__ == "__main__":
-    test_input = "J'ai cours de physique demain matin à 8h pendant 2h, et je dois aller au MMA tous les mardis à 19h. Ah et rappelle moi de faire les courses ce samedi."
-    
-    print("--- ENVOI AU CERVEAU ---")
-    print(f"Input : {test_input}")
-    
-    result = parse_schedule(test_input)
-    
-    print("\n--- RÉSULTAT JSON ---")
-    print(result)
-
+# ATTENTION : Il faut aussi adapter légèrement la fonction ICS pour qu'elle lise la nouvelle structure
 def generate_ics_file(json_data):
     c = Calendar()
     try:
-        # On s'assure que json_data est bien une liste (parfois l'IA renvoie un dict)
-        if isinstance(json_data, str):
-             import json
-             events = json.loads(json_data)
-        else:
-             events = json_data
-
-        for item in events:
+        # Si json_data est le dictionnaire complet, on prend juste la liste "planning"
+        events_list = json_data.get("planning", []) if isinstance(json_data, dict) else json_data
+        
+        for item in events_list:
             e = Event()
-            e.name = item.get("titre", "Événement sans titre")
+            e.name = item.get("titre", "Event")
             e.begin = item.get("start_iso")
             e.end = item.get("end_iso")
             e.description = item.get("description", "")
-            # On ajoute la catégorie dans la description pour l'instant
-            if item.get("categorie"):
-                e.description += f"\n\n[Catégorie: {item['categorie']}]"
             c.events.add(e)
-            
         return c.serialize()
     except Exception as e:
         return None
+
