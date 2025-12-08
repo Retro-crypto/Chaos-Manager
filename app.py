@@ -71,7 +71,12 @@ if st.button("🚀 LANCER LE DIAGNOSTIC & GÉNÉRER", type="primary", use_contai
                 raw_resp = parse_schedule(inputs)
                 data = json.loads(raw_resp)
                 
-                # --- RÉSULTATS ---
+                # --- DÉTECTEUR D'ERREUR ---
+                if "error" in data:
+                    st.error(f"🚨 ERREUR DU CERVEAU : {data['error']}")
+                    st.stop() # On arrête tout ici si ça plante
+                
+                # --- RÉSULTATS (Si tout va bien) ---
                 
                 # 1. ARCHÉTYPE & RADAR (L'Effet Wow)
                 st.markdown("---")
