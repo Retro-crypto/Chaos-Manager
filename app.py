@@ -1,59 +1,74 @@
 import streamlit as st
 import json
 import pandas as pd
-from backend import parse_schedule, generate_ics_file # On importe les deux moteurs
+from backend import parse_schedule, generate_ics_file
 
-# 1. CONFIGURATION
+# --- CONFIGURATION DU SITE ---
 st.set_page_config(page_title="Chaos Manager", page_icon="⚡", layout="centered")
 
-# 2. TITRE
+# --- HEADER PRO ---
 st.title("⚡ Chaos Manager")
-st.markdown("### Transforme ton vrac mental en planning structuré.")
+st.subheader("L'IA qui range ta vie à ta place.")
+st.info("💡 **Offre de Lancement :** Teste l'outil gratuitement ci-dessous. Pour exporter vers Google/Apple Agenda, débloque la version complète.")
 
-# 3. ZONE DE SAISIE
+# --- ZONE DE DÉMO ---
 user_input = st.text_area(
-    "Colle tes impératifs ici :", 
+    "1. Raconte ta semaine en vrac (Audio ou Texte) :", 
     height=150, 
-    placeholder="Ex: Dentiste mardi 14h, Gym 3 fois par semaine, Rendre devoir physique vendredi..."
+    placeholder="Exemple : J'ai cours de physique tous les mardis matin, je dois aller au MMA le jeudi à 19h, et rappelle-moi de bosser mon projet ce week-end..."
 )
 
-# 4. LE DÉCLENCHEUR
-if st.button("Générer mon Planning", type="primary"):
+if st.button("🔍 Prévisualiser mon Planning", type="primary"):
     if not user_input:
-        st.warning("Écris quelque chose d'abord !")
+        st.warning("Écris quelque chose pour tester la magie !")
     else:
-        with st.spinner("L'IA réfléchit..."):
+        with st.spinner("Analyse du chaos en cours..."):
             try:
-                # --- ÉTAPE 1 : GÉNÉRATION IA ---
+                # Appel IA
                 raw_response = parse_schedule(user_input)
+                cleaned = raw_response.replace("```json", "").replace("```", "").strip()
+                data = json.loads(cleaned)
                 
-                # Nettoyage du JSON
-                cleaned_response = raw_response.replace("```json", "").replace("```", "").strip()
-                data = json.loads(cleaned_response)
-                
-                # Succès
-                st.success(f"C'est fait ! {len(data)} événements trouvés.")
-                
-                # Affichage Tableau
+                # PREUVE VISUELLE (Le "Wow")
+                st.success(f"✅ Analyse réussie ! {len(data)} événements détectés.")
                 df = pd.DataFrame(data)
-                st.dataframe(df, use_container_width=True, hide_index=True)
                 
-                # --- ÉTAPE 2 : EXPORT ICS (Le Bouton Magique) ---
+                # On affiche un tableau propre
+                st.dataframe(
+                    df[["titre", "start_iso", "end_iso", "categorie"]],
+                    column_config={
+                        "titre": "Événement",
+                        "start_iso": "Début",
+                        "end_iso": "Fin",
+                        "categorie": "Type"
+                    },
+                    use_container_width=True,
+                    hide_index=True
+                )
+                
+                # --- LE PÉAGE (Call to Action) ---
                 st.markdown("---")
-                st.subheader("🗓️ Exporter vers mon Agenda")
+                col1, col2 = st.columns([2, 1])
                 
-                ics_content = generate_ics_file(data)
+                with col1:
+                    st.markdown("""
+                    ### 🔓 Débloquer mon fichier Agenda
+                    Pour ajouter ces événements directement dans **Google Agenda, Apple ou Outlook** :
+                    1. Cliquez sur le bouton pour régler l'accès (**9.90€** - Paiement Sécurisé Stripe).
+                    2. Envoyez-moi votre texte par mail (indiqué après paiement).
+                    3. Recevez votre fichier `.ics` prêt à l'emploi sous 24h.
+                    """)
                 
-                if ics_content:
-                    st.download_button(
-                        label="📥 Télécharger le fichier .ics (Google/Outlook/Apple)",
-                        data=ics_content,
-                        file_name="mon_planning_chaos.ics",
-                        mime="text/calendar"
+                with col2:
+                    # REMPLACE L'URL CI-DESSOUS PAR TON LIEN STRIPE
+                    st.link_button(
+                        "💳 ACHETER (9.90€)", 
+                        "https://buy.stripe.com/test_aFa4gAdYxcMBbCIbZOd7q00"
                     )
-                    st.info("💡 Mode d'emploi : Clique sur le bouton, ouvre le fichier téléchargé, et valide l'ajout à ton calendrier.")
-                else:
-                    st.error("Erreur lors de la création du fichier calendrier.")
-                
+                    
             except Exception as e:
-                st.error(f"Erreur critique : {e}")
+                st.error(f"Oups, petite erreur de lecture. Essaie de reformuler : {e}")
+
+# --- PIED DE PAGE ---
+st.markdown("---")
+st.caption("🔒 Service sécurisé. Satisfait ou remboursé. Développé par Retro Lab.")
