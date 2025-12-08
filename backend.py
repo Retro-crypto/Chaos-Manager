@@ -62,7 +62,7 @@ def parse_schedule(inputs):
     }}
     """
     
-    model = genai.GenerativeModel('gemini-1.5-pro')
+    model = genai.GenerativeModel('gemini-1.5-flash')
     full_prompt = f"{system_instruction}\n\nCONTEXTE: {get_current_context()}"
     
     try:
