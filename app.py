@@ -10,37 +10,116 @@ st.set_page_config(page_title="Chaos Manager V5", page_icon="🧠", layout="wide
 st.markdown("""
 <style>
     .stApp { background-color: #0e1117; }
-    .method-box { background-color: #1c202a; padding: 15px; border-radius: 10px; border-left: 4px solid #FF4B4B; margin-bottom: 20px; font-size: 14px;}
+    
+    /* Le Badge Tech */
+    .tech-badge {
+        background-color: #1c202a; 
+        border: 1px solid #00ff00; 
+        color: #00ff00; 
+        padding: 5px 10px; 
+        border-radius: 5px; 
+        font-family: monospace; 
+        font-size: 12px;
+        display: inline-block;
+        margin-bottom: 10px;
+        box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+    }
+
+    /* Boite Explication */
+    .concept-box {
+        background-color: #161924;
+        border-left: 4px solid #FF4B4B;
+        padding: 20px;
+        border-radius: 0 10px 10px 0;
+        margin-bottom: 20px;
+    }
+    
+    /* Comparaison Profils */
+    .profile-example {
+        background-color: #262730;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        border: 1px solid #444;
+    }
+    .versus { font-size: 20px; font-weight: bold; color: #FF4B4B; text-align: center; margin-top: 30px;}
+    
+    /* Reste du style */
     .rpg-card { background: linear-gradient(135deg, #2b3042 0%, #161924 100%); border: 1px solid #444; border-radius: 15px; padding: 20px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
     .archetype-title { color: #FF4B4B; font-size: 26px; font-weight: 800; text-transform: uppercase; margin-top: 10px;}
     .blur-text { filter: blur(5px); user-select: none; color: #888; opacity: 0.7; }
     .locked-section { border: 1px dashed #FF4B4B; padding: 20px; border-radius: 10px; background-color: #1e1111; text-align: center; margin-top: 20px;}
-    .prompt-tag { background-color: #333; color: #00ff00; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; margin-right: 5px;}
 </style>
 """, unsafe_allow_html=True)
 
 # --- SIDEBAR ---
 with st.sidebar:
     st.header("🧠 Chaos Manager")
-    st.caption("v5.0.1 (Beta)")
+    st.caption("v5.0.1 (Experimental)")
+    st.markdown('<div class="tech-badge">⚡ CORE: GEMINI 3.0 PRO</div>', unsafe_allow_html=True)
+    st.markdown('<div class="tech-badge">🔐 PROMPTS: PROPRIETARY</div>', unsafe_allow_html=True)
     st.markdown("---")
-    st.info("💡 **Le Saviez-vous ?**\nLe modèle Big Five est le standard scientifique en psychométrie, bien plus fiable que le MBTI.")
+    st.info("💡 **Pourquoi ça marche ?**\nNous n'utilisons pas des modèles génériques. Le système injecte des prompts psycho-adaptatifs basés sur vos scores OCEAN.")
 
 # --- HEADER & PÉDAGOGIE ---
 st.title("🧠 Chaos Manager : Expert Edition")
-st.markdown("### L'ingénierie IA au service de ton organisation.")
+st.markdown("### L'ingénierie IA au service de ton neuro-type.")
 
-with st.expander("ℹ️ Comment ça marche ? (Méthodologie)", expanded=False):
+# --- L'ARGUMENTAIRE PERCUTANT ---
+with st.expander("ℹ️ Pourquoi les agendas classiques échouent pour toi ?", expanded=True):
     st.markdown("""
-    Contrairement aux agendas classiques, cet outil utilise le modèle des **Big Five (OCEAN)** pour adapter la journée à ta chimie cérébrale :
-    * **O**uverture : Besoin de nouveauté vs Routine.
-    * **C**onscience : Discipline naturelle vs Chaos.
-    * **E**xtraversion : Besoin de stimulation sociale.
-    * **A**gréabilité : Tendance à dire oui (et se faire bouffer).
-    * **N**évrosisme : Sensibilité au stress et à l'imprévu.
-    """)
+    <div class="concept-box">
+        <b>La plupart des outils de productivité sont conçus pour un seul type de cerveau : le "Gestionnaire".</b><br>
+        Mais si tu es ici, c'est que ton cerveau fonctionne différemment.
+        <br><br>
+        Notre algorithme utilise le modèle scientifique des <b>Big Five (OCEAN)</b> combiné à l'architecture <b>Gemini 3 Pro</b> pour scanner ta personnalité et générer une stratégie temporelle unique.
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.write("👀 **Concrètement, ça change quoi ?** Regarde la différence de traitement pour une même journée :")
+    
+    c1, c2, c3 = st.columns([1, 0.2, 1])
+    
+    with c1:
+        st.markdown("""
+        <div class="profile-example">
+            <h4>👤 Profil A : "Le Soldat"</h4>
+            <small>(Haute Discipline, Basse Ouverture)</small>
+            <hr>
+            <p style="color:#aaffaa;">✅ <b>Ce que l'IA génère :</b></p>
+            <ul style="text-align:left; font-size:14px;">
+                <li>08:00 - Routine précise</li>
+                <li>09:00 - Tâche A (1h)</li>
+                <li>10:00 - Tâche B (1h)</li>
+                <li><i>Structure rigide et rassurante.</i></li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with c2:
+        st.markdown('<div class="versus">VS</div>', unsafe_allow_html=True)
+        
+    with c3:
+        st.markdown("""
+        <div class="profile-example">
+            <h4>👤 Profil B : "L'Artiste"</h4>
+            <small>(Haute Impulsion, Basse Discipline)</small>
+            <hr>
+            <p style="color:#ffaaaa;">✅ <b>Ce que l'IA génère :</b></p>
+            <ul style="text-align:left; font-size:14px;">
+                <li>09:00 - Bloc "Deep Work" (4h)</li>
+                <li>Objectif Unique : "Avancer"</li>
+                <li>Interdiction de couper.</li>
+                <li><i>Hyperfocus dopaminergique.</i></li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
 
-st.write("Pour commencer, calibrons l'IA avec ton profil actuel.")
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("#### 1. Calibration Neuro-Psychologique")
+st.caption("Remplis ces jauges honnêtement. L'IA va sélectionner les 'Secret Prompts' adaptés à tes scores.")
+
+
 
 # --- FORMULAIRE D'AUTO-CALIBRATION (Honnête) ---
 st.markdown("#### 1. Auto-Calibration Psychométrique")
