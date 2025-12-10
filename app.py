@@ -125,13 +125,12 @@ with c3:
     """, unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
-st.markdown("#### 1. Calibration Neuro-Psychologique")
-st.caption("Remplis ces jauges. L'IA va sélectionner les 'Secret Prompts' adaptés à tes scores.")
 
 # ... LE RESTE DU CODE (FORMULAIRE) ...
 # --- FORMULAIRE ---
-st.write("#### 1. Calibration du 'Hardware' (Personnalité)")
-st.caption("Importez vos données ou faites une estimation rapide.")
+st.markdown("#### 1. Calibration Neuro-Psychologique")
+
+st.caption("Importez vos données ou faites une estimation rapide. L'IA va sélectionner les 'Secret Prompts' adaptés à tes scores.")
 
 with st.form("psycho_form"):
     
