@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.express as px
 from backend import parse_schedule, generate_ics_file
 
-st.set_page_config(page_title="Chaos Manager V5", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="Chaos Manager V6", page_icon="🧠", layout="wide")
 
 # --- CSS & STYLE ---
 st.markdown("""
@@ -12,40 +12,13 @@ st.markdown("""
     .stApp { background-color: #0e1117; }
     
     /* Le Badge Tech */
-    .tech-badge {
-        background-color: #1c202a; 
-        border: 1px solid #00ff00; 
-        color: #00ff00; 
-        padding: 4px 8px; 
-        border-radius: 4px; 
-        font-family: monospace; 
-        font-size: 11px;
-        display: inline-block;
-        margin-bottom: 10px;
-        box-shadow: 0 0 8px rgba(0, 255, 0, 0.1);
-    }
+    .tech-badge { background-color: #1c202a; border: 1px solid #00ff00; color: #00ff00; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 11px; display: inline-block; margin-bottom: 10px; box-shadow: 0 0 8px rgba(0, 255, 0, 0.1); }
 
-    /* Boite Explication Scientifique */
-    .concept-box {
-        background-color: #13151b;
-        border-left: 3px solid #FF4B4B;
-        padding: 25px;
-        border-radius: 0 10px 10px 0;
-        margin-bottom: 30px;
-        font-size: 15px;
-        line-height: 1.6;
-    }
-    .science-term { color: #FF4B4B; font-weight: bold; }
+    /* Boite Explication */
+    .concept-box { background-color: #13151b; border-left: 3px solid #FF4B4B; padding: 25px; border-radius: 0 10px 10px 0; margin-bottom: 30px; font-size: 15px; line-height: 1.6; }
     
-    /* Comparaison Profils (Plus compacte) */
-    .profile-example {
-        background-color: #21232b;
-        padding: 15px;
-        border-radius: 8px;
-        text-align: center;
-        border: 1px solid #333;
-        font-size: 13px; /* Police réduite */
-    }
+    /* Comparaison Profils */
+    .profile-example { background-color: #21232b; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #333; font-size: 13px; }
     .versus { font-size: 18px; font-weight: bold; color: #666; text-align: center; margin-top: 40px;}
     
     /* Reste du style */
@@ -59,172 +32,178 @@ st.markdown("""
 # --- SIDEBAR ---
 with st.sidebar:
     st.header("🧠 Chaos Manager")
-    st.caption("v5.1 (Stable)")
+    st.caption("v6.0 (Neuro-Engine)")
     st.markdown('<div class="tech-badge">⚡ CORE: GEMINI 3.0 PRO</div>', unsafe_allow_html=True)
-    st.markdown('<div class="tech-badge">🔐 PROMPTS: PROPRIETARY</div>', unsafe_allow_html=True)
+    st.markdown('<div class="tech-badge">🧬 INPUT: MULTI-VECTOR</div>', unsafe_allow_html=True)
     st.markdown("---")
-    st.info("💡 **Science du Prompting**\nChaque planning est généré par une injection de prompt unique, calculée selon vos vecteurs de personnalité OCEAN.")
+    st.info("💡 **Science**\nNous croisons votre profil **OCEAN** (Cerveau Inné) avec vos **Métriques de Travail** (Habitudes Acquises) pour générer le prompt parfait.")
 
-# --- HEADER & PÉDAGOGIE ---
+# --- HEADER ---
 st.title("🧠 Chaos Manager : Expert Edition")
 st.markdown("### L'ingénierie IA au service de ton neuro-type.")
 
-# --- L'ARGUMENTAIRE SCIENTIFIQUE (Visible & Direct) ---
+# --- PÉDAGOGIE ---
 st.markdown("""
 <div class="concept-box">
-    <b>Pourquoi les agendas classiques échouent pour 48% des gens ?</b><br><br>
-    Parce qu'ils imposent une structure unique à des cerveaux différents. 
-    Notre algorithme repose sur une approche scientifique double :
-    <br><br>
-    1. 🧬 <b>Le Modèle Big Five (OCEAN) :</b> Nous ne devinons pas qui vous êtes. Nous calibrons l'IA sur vos 5 traits de personnalité fondamentaux (Ouverture, Conscience, Extraversion, Agréabilité, Névrosisme).
-    <br><br>
-    2. 🤖 <b>Le "Psychometric Prompt Engineering" :</b> C'est notre innovation majeure. Contrairement à ChatGPT qui utilise un ton générique, notre système sélectionne dynamiquement des <i>System Instructions</i> secrètes. 
+    <b>Pourquoi connaître son type OCEAN ne suffit pas ?</b><br><br>
+    Savoir que vous êtes "Consciencieux" (Test OCEAN/MBTI) est un bon début. Mais cela ne dit pas comment vous réagissez à une deadline de 2h ou au bruit ambiant.<br>
+    Notre algorithme <b>Neuro-Cross™</b> croise deux couches de données :
     <br>
-    <i>Exemple : Si vous êtes détecté "Faible Discipline / Haute Impulsion", l'IA n'essaiera pas de vous faire lever à 5h du matin. Elle activera le protocole "Dopamine Sprint" pour maximiser votre hyperfocus.</i>
+    1. 🧠 <b>Le Hardware (Votre Personnalité) :</b> Vos traits innés (OCEAN).
+    <br>
+    2. ⚙️ <b>Le Software (Votre Modus Operandi) :</b> Vos mécanismes de travail actuels (Focus, Résistance au stress, Chronotype).
 </div>
 """, unsafe_allow_html=True)
 
-st.write("👀 **Visualisez l'impact du Prompting Adaptatif sur 2 profils opposés :**")
+# --- FORMULAIRE ---
+st.write("#### 1. Calibration du 'Hardware' (Personnalité)")
+st.caption("Importez vos données ou faites une estimation rapide.")
 
-# COLONNES COMPACTES
-c1, c2, c3 = st.columns([1, 0.15, 1])
-
-with c1:
-    st.markdown("""
-    <div class="profile-example">
-        <strong style="font-size:16px;">👤 Profil A : "Le Soldat"</strong><br>
-        <span style="color:#aaa;">(Haute Discipline, Basse Ouverture)</span>
-        <hr style="margin:10px 0; border-color:#444;">
-        <p style="color:#aaffaa; font-weight:bold;">✅ Stratégie IA générée :</p>
-        <ul style="text-align:left; padding-left:20px; margin-bottom:5px;">
-            <li>Planning linéaire (9h-18h)</li>
-            <li>Pauses fixes de 15 min</li>
-            <li>Objectif : Constance</li>
-        </ul>
-        <i style="color:#666;">-> L'IA agit comme un "Architecte".</i>
-    </div>
-    """, unsafe_allow_html=True)
-    
-with c2:
-    st.markdown('<div class="versus">VS</div>', unsafe_allow_html=True)
-    
-with c3:
-    st.markdown("""
-    <div class="profile-example">
-        <strong style="font-size:16px;">👤 Profil B : "L'Artiste"</strong><br>
-        <span style="color:#aaa;">(Haute Impulsion, Basse Discipline)</span>
-        <hr style="margin:10px 0; border-color:#444;">
-        <p style="color:#ffaaaa; font-weight:bold;">✅ Stratégie IA générée :</p>
-        <ul style="text-align:left; padding-left:20px; margin-bottom:5px;">
-            <li>Blocs "Deep Work" de 4h</li>
-            <li>Zéro contrainte le matin</li>
-            <li>Objectif : Intensité</li>
-        </ul>
-        <i style="color:#666;">-> L'IA agit comme un "Coach de Sprint".</i>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
-st.markdown("#### 1. Calibration Neuro-Psychologique")
-st.caption("Remplis ces jauges. L'IA va sélectionner les 'Secret Prompts' adaptés à tes scores.")
-
-
-# ... LE RESTE DU CODE (FORMULAIRE) ...
 with st.form("psycho_form"):
-    col1, col2 = st.columns(2)
-    with col1:
-        discipline = st.slider("Conscience / Discipline (Est-ce que tu finis ce que tu commences ?)", 0, 100, 40)
-        stress = st.slider("Névrosisme / Stress (Ton niveau d'anxiété face à l'imprévu)", 0, 100, 60)
-        energy = st.select_slider("Ton niveau d'Énergie ce matin :", options=["🧟 Zombie", "🔋 Faible", "⚡ Moyen", "🔥 Au Max"])
     
-    with col2:
-        openness = st.slider("Ouverture (Besoin de nouveauté vs Routine)", 0, 100, 70)
-        social = st.slider("Extraversion (Besoin de voir des gens aujourd'hui)", 0, 100, 50)
+    # === C'EST ICI QUE SE TROUVENT LES ONGLETS (TABS) ===
+    tab1, tab2 = st.tabs(["📂 J'ai déjà mes scores OCEAN", "🔍 Je ne sais pas (Estimation)"])
     
-    st.markdown("#### 2. La Mission")
-    mission = st.text_area("Quels sont tes impératifs bruts ?", placeholder="Ex: Rendre projet Python, Sport ce soir, Appeler Maman...", height=100)
-    
-    submitted = st.form_submit_button("🚀 GÉNÉRER L'ANALYSE & LE PLANNING", type="primary", use_container_width=True)
+    # Onglet 1 : Saisie Manuelle (Pour les experts)
+    with tab1:
+        st.info("Entrez les pourcentages obtenus sur BigFive-Test ou convertissez vos lettres MBTI.")
+        c1, c2, c3, c4, c5 = st.columns(5)
+        # On met 0 par défaut pour savoir si l'utilisateur a rempli ou pas
+        o_score = c1.number_input("Ouverture", 0, 100, 0, key="o_in")
+        c_score = c2.number_input("Conscience", 0, 100, 0, key="c_in")
+        e_score = c3.number_input("Extraversion", 0, 100, 0, key="e_in")
+        a_score = c4.number_input("Agréabilité", 0, 100, 0, key="a_in")
+        n_score = c5.number_input("Névrosisme", 0, 100, 0, key="n_in")
 
-# --- RÉSULTATS ---
+    # Onglet 2 : Sliders (Pour les autres)
+    with tab2:
+        st.write("Estimez-vous honnêtement sur ces échelles :")
+        col_est1, col_est2 = st.columns(2)
+        with col_est1:
+            o_est = st.slider("Ouverture (Besoin de nouveauté / Curiosité)", 0, 100, 50)
+            c_est = st.slider("Conscience (Discipline / Organisation)", 0, 100, 50)
+            e_est = st.slider("Extraversion (Besoin social / Énergie externe)", 0, 100, 50)
+        with col_est2:
+            a_est = st.slider("Agréabilité (Empathie / Tendance à dire oui)", 0, 100, 50)
+            n_est = st.slider("Névrosisme (Sensibilité au stress / Anxiété)", 0, 100, 50)
+
+    st.markdown("---")
+    st.write("#### 2. Calibration du 'Software' (Méthodes de Travail)")
+    st.caption("Comment votre cerveau fonctionne-t-il *en situation* ?")
+    
+    col_w1, col_w2 = st.columns(2)
+    with col_w1:
+        focus_span = st.select_slider(
+            "⏱️ Endurance de Concentration Max :",
+            options=["15 min (TDAH)", "45 min (Standard)", "2h (Deep Work)", "4h+ (Hyperfocus)"]
+        )
+        deadline_react = st.radio(
+            "💣 Face à une urgence :",
+            ["Je paralyse", "Je procrastine jusqu'à la fin", "Je m'active (Adrénaline)", "Je planifie froidement"]
+        )
+    
+    with col_w2:
+        chronotype = st.selectbox(
+            "⏰ Votre Pic Biologique :",
+            ["Matin (06h-11h)", "Après-midi (14h-18h)", "Soirée (21h-00h)", "Nuit Profonde (00h-04h)"]
+        )
+        environment = st.selectbox(
+            "🔊 Environnement requis :",
+            ["Silence absolu", "Bruit blanc / LoFi", "Chaos ambiant / Café", "Musique agressive"]
+        )
+
+    st.markdown("---")
+    st.write("#### 3. La Mission")
+    mission = st.text_area("Vos impératifs (Vrac accepté) :", placeholder="Ex: Rendre projet Python, Sport ce soir...", height=100)
+    
+    submitted = st.form_submit_button("🚀 LANCER L'ANALYSE NEURO-CROSS", type="primary", use_container_width=True)
+
+# --- LOGIQUE ---
 if submitted:
+    # Logique intelligente : Si l'utilisateur a rempli l'onglet 1 (scores > 0), on prend ça. Sinon on prend les sliders.
+    if o_score + c_score + e_score > 0:
+        # L'utilisateur a utilisé l'onglet 1
+        final_scores = {"Ouverture": o_score, "Conscience": c_score, "Extraversion": e_score, "Agréabilité": a_score, "Névrosisme": n_score}
+    else:
+        # L'utilisateur a utilisé l'onglet 2 (ou rien touché)
+        final_scores = {"Ouverture": o_est, "Conscience": c_est, "Extraversion": e_est, "Agréabilité": a_est, "Névrosisme": n_est}
+
     if not mission:
         st.warning("Donne-moi au moins une tâche !")
     else:
-        with st.spinner("Simulation du cortex préfrontal... Application des matrices Big Five..."):
-            # Appel Backend (Simulé)
-            inputs = {"discipline": discipline, "mission": mission}
+        with st.spinner("Croisement des vecteurs OCEAN & Habitudes..."):
+            
+            # Inputs complets pour le backend
+            inputs = {
+                "scores": final_scores,
+                "work_style": {
+                    "focus": focus_span,
+                    "deadline": deadline_react,
+                    "chrono": chronotype,
+                    "env": environment
+                },
+                "mission": mission
+            }
+            
+            # Appel Backend
             data = json.loads(parse_schedule(inputs))
             
-            # --- BLOC 1 : IDENTITÉ (GRATUIT) ---
+            # --- RÉSULTATS (Carte & Radar) ---
             st.markdown("---")
             col_card, col_radar = st.columns([1, 1])
             
             with col_card:
-                # Carte RPG
                 st.markdown(f"""
                 <div class="rpg-card">
-                    <div style="font-size:12px; color:#FF4B4B; font-weight:bold;">✨ RARETÉ : {data.get('rarity')}</div>
+                    <div style="font-size:12px; color:#FF4B4B; font-weight:bold;">🧬 PROFIL NEURO-CROSS : {data.get('rarity')}</div>
                     <div class="archetype-title">{data.get('archetype')}</div>
                     <p style="font-style:italic; color:#aaa; margin-top:10px;">"{data.get('quote')}"</p>
                     <hr style="border-color:#444;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                        <span>⚔️ Atout :</span><span style="color:white; font-weight:bold;">{data.get('superpower')}</span>
+                        <span>⚔️ Levier Principal :</span><span style="color:white; font-weight:bold;">{data.get('superpower')}</span>
                     </div>
                     <div style="display:flex; justify-content:space-between;">
-                        <span>💀 Faiblesse :</span><span style="color:white; font-weight:bold;">{data.get('kryptonite')}</span>
+                        <span>⚠️ Point de Rupture :</span><span style="color:white; font-weight:bold;">{data.get('kryptonite')}</span>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
                 
             with col_radar:
-                # Radar
-                scores = data.get("scores", {})
-                df_scores = pd.DataFrame(dict(r=list(scores.values()), theta=list(scores.keys())))
+                # Radar (Basé sur les scores OCEAN)
+                df_scores = pd.DataFrame(dict(r=list(final_scores.values()), theta=list(final_scores.keys())))
                 fig = px.line_polar(df_scores, r='r', theta='theta', line_close=True, range_r=[0,100])
                 fig.update_traces(fill='toself', line_color='#FF4B4B')
                 fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="white"))
                 st.plotly_chart(fig, use_container_width=True)
 
-            # --- BLOC 2 : LE TEASING PLANNING (Semi-Gratuit) ---
+            # --- TEASING PLANNING ---
             st.markdown("---")
-            st.subheader("📅 Aperçu de ton Planning (Matinée)")
-            st.caption("Voici comment l'IA structure ton démarrage pour contourner ta 'Faiblesse'.")
+            st.subheader("📅 Votre Stratégie Temporelle (Aperçu)")
             
             planning = data.get("planning", [])
-            # On affiche QUE les 2 premiers items
             if len(planning) > 0:
-                df_free = pd.DataFrame(planning[:2]) # Les 2 premiers
+                df_free = pd.DataFrame(planning[:2])
                 st.dataframe(df_free[["titre", "start_iso", "end_iso", "categorie"]], hide_index=True, use_container_width=True)
             
-            # --- BLOC 3 : LE PAYWALL (La Valeur) ---
+            # --- PAYWALL ---
             st.markdown('<div class="locked-section">', unsafe_allow_html=True)
-            st.write("🔒 **LA SUITE DE LA JOURNÉE EST VERROUILLÉE**")
+            st.write("🔒 **RAPPORT NEURO-PSYCHOLOGIQUE COMPLET VERROUILLÉ**")
             
             col_blur, col_pitch = st.columns([1.5, 1])
             with col_blur:
-                st.markdown("#### Ce que tu manques :")
-                # Faux planning flouté
-                st.markdown('<div class="blur-text">14:00 - Deep Work Session 2 (Projet Critique)</div>', unsafe_allow_html=True)
-                st.markdown('<div class="blur-text">16:00 - Gestion de crise (Admin & Mails)</div>', unsafe_allow_html=True)
-                st.markdown('<div class="blur-text">18:00 - Routine de décompression Dopamine</div>', unsafe_allow_html=True)
-                
-                st.markdown("#### 🧠 Analyse Cognitive Exclusive :")
-                st.markdown('<div class="blur-text">Ton score élevé en Névrosisme nécessite une approche spécifique. J ai supprimé les tâches anxiogènes du matin pour...</div>', unsafe_allow_html=True)
+                st.markdown("#### Analyse Croisée (OCEAN x Habitudes) :")
+                st.markdown(f'<div class="blur-text">Votre Conscience ({final_scores["Conscience"]}%) entre en conflit avec votre habitude "{deadline_react}". L IA a détecté un risque élevé de paralysie décisionnelle à 14h...</div>', unsafe_allow_html=True)
+                st.markdown("#### Les Prompts Secrets Activés :")
+                st.markdown('<div class="blur-text"><System> Override circadian rythm for Night Owl profile...</div>', unsafe_allow_html=True)
 
             with col_pitch:
-                st.info("📦 **PACK COMPLET (9.90€)**")
+                st.info("📦 **PACK EXPERT (9.90€)**")
                 st.markdown("""
-                ✅ **Planning Complet** (.ics)
-                ✅ **Analyse Profonde** (Ton mode d'emploi)
-                ✅ **Les Prompts Secrets** utilisés :
+                ✅ **Planning Intégral** (.ics)
+                ✅ **Analyse Neuro-Cross** (Pourquoi vous bloquez)
+                ✅ **Les Prompts Secrets** (Recette)
                 """)
-                # Affichage style "Code" pour les prompts
-                st.markdown('`<System> Act as Neuro-Expert...`')
-                st.markdown('`<Strategy> Time-Boxing +20% buffer...`')
-                
-                st.markdown("<br>", unsafe_allow_html=True)
-                # LIEN STRIPE LIVE ICI
+                # LIEN STRIPE LIVE ICI (Celui que tu m'as donné)
                 st.link_button("🔓 DÉBLOQUER MAINTENANT", "https://buy.stripe.com/00w7sN5ZW5gp9GggtP0RG00", type="primary")
             
             st.markdown('</div>', unsafe_allow_html=True)
