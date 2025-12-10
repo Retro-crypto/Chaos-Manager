@@ -358,17 +358,44 @@ if submitted:
             # --- ONGLET 1 : L'AFFICHAGE CLASSIQUE ---
             with res_tab1:
                 # ZONE THEORIE (Visible directement)
-                st.markdown("#### 📖 Théorie : Comment l'IA structure votre temps")
-                st.markdown("""
-                **1. L'Axe de la Structure (Conscience)**
-                * **Si C > 70 (L'Architecte) :** Votre cerveau a besoin de prévisibilité. L'IA génère des blocs longs et rigides.
-                * **Si C < 30 (Le Chaos Pilot) :** Votre cerveau cherche la nouveauté. L'IA fragmente le temps en sprints pour maintenir la dopamine.
-                
-                **2. L'Axe de la Charge (Névrosisme)**
-                * **Si N > 70 :** Le stress vous coûte cher. L'IA insère des "Zones Tampons" pour absorber les imprévus.
-                """)
-                
-                st.markdown("---")
+                st.expander("####📖 Théorie Avancée : L'Algorithme de Structuration Temporelle"):
+                # On utilise un expander pour ne pas noyer l'utilisateur, car le texte est dense
+                    st.markdown("""
+                    **Le Postulat : La Friction Cognitive**
+                    L'échec d'un planning ne vient pas d'un manque de volonté, mais d'une incompatibilité entre la structure du temps (l'agenda) et la structure de la pensée (le cerveau).
+                    
+                    ---
+                    
+                    ### 1. L'Axe de la Structure (Conscience)
+                    *Comment votre cerveau gère l'entropie et l'effort dans la durée.*
+                    
+                    * **🔼 Si C > 75 (L'Architecte / Le Séquentiel) :**
+                        * *Fonctionnement :* Votre performance repose sur la continuité. Vous détestez le changement de contexte ("Task Switching"). Une interruption de 2 min peut vous coûter 20 min de reconcentration.
+                        * *Stratégie IA :* **Deep Work Séquentiel.** Le planning crée des blocs massifs (90-120 min) et sanctuarisés. L'objectif est la fluidité linéaire.
+                    
+                    * **🔽 Si C < 30 (Le Chaos Pilot / Le Divergent) :**
+                        * *Fonctionnement :* Votre cerveau est un moteur à combustion rapide. Il fonctionne à la "Nouveauté" et à l'Urgence. La routine linéaire génère de l'ennui, qui se transforme immédiatement en procrastination.
+                        * *Stratégie IA :* **Gamification & Sprints.** Le temps est fragmenté en sessions courtes (25-45 min). On alterne les types de tâches (Créatif -> Admin -> Créatif) pour "tromper" le cerveau et maintenir le niveau de dopamine.
+                        
+                    * **⏺️ Si C entre 30 et 75 (Le Flex-Master) :**
+                        * *Stratégie IA :* **Hybridation.** Une base structurée pour le matin (pour assurer l'avancement), mais des plages de "chaos contrôlé" l'après-midi pour laisser place à l'improvisation.
+
+                    ---
+
+                    ### 2. L'Axe de la Charge Mentale (Névrosisme)
+                    *Le coût métabolique de l'incertitude et du risque.*
+
+                    * **🔼 Si N > 70 (La Sentinelle / Hyper-Réactif) :**
+                        * *Fonctionnement :* Votre système de détection des menaces est très sensible. Un retard ou un imprévu déclenche une réponse cortisol (stress) disproportionnée qui paralyse l'action.
+                        * *Stratégie IA :* **Sécurité & Tampons.** L'algorithme insère des "Airbags Temporels" (buffers de 15-20 min) entre les tâches. On évite la surcharge cognitive en ne montrant que la prochaine étape immédiate.
+                    
+                    * **🔽 Si N < 30 (Le Stoïque / Le Roc) :**
+                        * *Fonctionnement :* Vous avez une haute tolérance à la pression. Les deadlines serrées agissent comme un stimulant plutôt qu'un frein. Vous récupérez vite d'un échec.
+                        * *Stratégie IA :* **Densité Maximale.** Le planning est compacté ("Time-Boxing" agressif). On supprime les marges de sécurité pour maximiser le rendement pur (Yield).
+                        
+                    * **⏺️ Si N entre 30 et 70 (Le Régulateur) :**
+                        * *Stratégie IA :* **Standard.** Gestion classique des pauses (5-10 min toutes les heures) pour maintenir une homéostasie mentale stable sur la journée.
+                    """)
                 
                 # 1. Le Blabla d'analyse auto
                 st.info(f"💡 **Stratégie Cognitive :** {data.get('analysis_global', 'Analyse en cours...')}")
@@ -417,17 +444,36 @@ if submitted:
                 # ZONE THEORIE (Visible directement)
                 st.markdown("#### 📖 Théorie : La Chronobiologie (Loi de Breus)")
                 st.markdown("""
-                **Le principe : L'Alignement Circadien**
-                Votre performance dépend de votre taux de Cortisol (éveil). Lutter contre ce pic est coûteux.
-                
-                * 🦁 **Lion (Matin) :** Pic à 07h. Plus de Deep Work après 14h.
-                * 🐻 **Ours (Solaire) :** Pic 10h-14h. Crash normal vers 15h.
-                * 🐺 **Loup (Soir) :** Pic 19h. Matinées au ralenti (inertie du sommeil).
-                * 🐬 **Dauphin (Irrégulier) :** Sommeil fragile. Fonctionne par micro-sprints.
-                """)
-                
-                st.markdown("---")
-                
+            ### 📖 Théorie : La Chronobiologie (Loi de Breus)
+            **Le Postulat : L'Alignement Circadien**
+            Le temps est une mesure linéaire, mais l'énergie biologique est cyclique. Votre performance dépend de votre taux de Cortisol (hormone d'éveil). Lutter contre ce pic naturel génère une friction métabolique inutile.
+            
+            ---
+
+            #### 1. Les Architectures Matinales (Le Réveil Rapide)
+            *Comment votre corps gère le démarrage système.*
+
+            * 🦁 **Le Lion (Matin - 15%) :**
+                * *Fonctionnement :* Latence nulle au réveil. Vous êtes opérationnel dès que les yeux s'ouvrent. Votre énergie est massive le matin mais s'effondre linéairement en fin de journée.
+                * *Stratégie IA :* **Front-Loading Agressif.** 80% de votre charge cognitive (Deep Work) doit être exécutée avant 12h00. L'après-midi (après 14h) est une zone de maintenance (tâches passives, admin). Tenter de "forcer" le soir est contre-productif.
+
+            * 🐻 **L'Ours (Solaire - 55%) :**
+                * *Fonctionnement :* Vous êtes couplé au cycle solaire. Votre montée en puissance est progressive (pic vers 10h-11h). Vous possédez une stabilité élevée, mais subissez un "Crash Post-Prandial" inévitable (le coup de barre de 14h).
+                * *Stratégie IA :* **Séquençage Classique.** Matin pour l'analyse et la production. Début d'après-midi (14h-15h30) pour les réunions ou tâches à faible valeur ajoutée. Reprise modérée vers 16h. Ne luttez jamais contre le creux de 14h.
+
+            ---
+
+            #### 2. Les Architectures Décalées (La Latence Élevée)
+            *Comment votre corps gère l'inertie et la volatilité.*
+
+            * 🐺 **Le Loup (Soir - 15%) :**
+                * *Fonctionnement :* Votre pic de cortisol est inversé (vers 19h). Le matin, vous subissez une forte "inertie du sommeil" (brouillard mental). Vous êtes socialement décalé, mais créativement supérieur quand le monde dort.
+                * *Stratégie IA :* **Démarrage Défensif & Attaque Nocturne.** Ne planifiez aucune tâche analytique complexe avant 11h00 (faites de la veille, lecture). Votre "Prime Time" est de 17h00 à minuit. C'est là qu'il faut isoler vos blocs de concentration.
+
+            * 🐬 **Le Dauphin (Irrégulier - 10%) :**
+                * *Fonctionnement :* Votre signal de sommeil est bruité (insomnies, réveils fréquents). Vous fonctionnez souvent à "l'énergie nerveuse" (cortisol erratique). Vous êtes souvent fatigué mais incapable de dormir ("wired but tired").
+                * *Stratégie IA :* **Opportunisme & Micro-Sprints.** La planification rigide échoue avec vous. N'essayez pas de faire des blocs de 4h. Travaillez par itérations courtes (45 min) dès qu'une fenêtre de lucidité s'ouvre, quelle que soit l'heure.
+            """)
                 st.markdown("#### 🌊 Courbe d'Énergie Circadienne")
                 st.info(f"🧬 **Analyse Chronobiologique :** {data.get('analysis_bio', 'Calcul...')}")
                 
@@ -450,16 +496,50 @@ if submitted:
                 # ZONE THEORIE (Visible directement)
                 st.markdown("#### 📖 Théorie : L'Économie de la Batterie Sociale")
                 st.markdown("""
-                **Le principe : Le Coût Métabolique**
-                Chaque tâche coûte des points d'énergie selon votre Extraversion (E).
+            ### 📖 Théorie : La Dynamique Énergétique (Extraversion)
+            **Le Postulat : Le Bilan Métabolique**
+            L'énergie n'est pas seulement une question de sommeil ou de glucose. C'est une question de stimulation neurologique. Chaque type de tâche possède un "Coût Unitaire" différent selon votre câblage dopaminergique.
+            
+            ---
+
+            #### 1. L'Architecture Interne (Introversion | E < 40)
+            *Le cerveau à haute fréquence basale.*
+
+            * **Fonctionnement :**
+                * Votre cortex est naturellement très actif. Vous êtes sensible à la dopamine : un excès de stimulation externe (bruit, monde, notifications) provoque une surcharge sensorielle rapide.
+                * **L'équation :** Interaction Sociale = 🟥 DRAIN (Coût élevé). Solitude = 🟩 RECHARGE (Maintenance).
+            
+            * **Stratégie IA :**
+                * **Batching des Interactions :** Ne dispersez pas vos réunions. Groupez-les toutes sur une demi-journée pour limiter le coût de "changement de mode".
+                * **Buffer de Décompression :** Après une réunion de 1h, insérez impérativement 15 min de solitude totale (pas de slack, pas d'email) pour vidanger le tampon cognitif.
+                * **Mode Moine :** Privilégiez la communication asynchrone (écrit) pour contrôler le flux d'entrée.
+
+            ---
+
+            #### 2. L'Architecture Externe (Extraversion | E > 60)
+            *Le cerveau à seuil d'activation élevé.*
+
+            * **Fonctionnement :**
+                * Votre niveau d'éveil naturel est bas. Pour "allumer" le système, vous avez besoin de stimulation externe. Le silence et l'immobilité prolongés sont perçus par votre cerveau comme une sous-stimulation stressante (ennui mortel).
+                * **L'équation :** Interaction Sociale = 🟩 RECHARGE (Gain). Solitude Prolongée = 🟥 DRAIN (Coût).
+            
+            * **Stratégie IA :**
+                * **Body Doubling :** Pour les tâches ennuyeuses ou difficiles, ne travaillez pas seul. Avoir quelqu'un à côté (même silencieux) ou travailler dans un café maintient votre vigilance.
+                * **Ping-Pong Cognitif :** Utilisez les réunions non pas pour "rendre compte", mais pour "réfléchir à voix haute". Votre pensée se structure en s'exprimant.
+                * **Pauses Actives :** Vos pauses doivent être sociales ou cinétiques, pas passives.
+
+            ---
+
+            #### 3. Le Spectre Central (Ambiversion | 40 < E < 60)
+            *L'hybride contextuel.*
+
+            * **Fonctionnement :**
+                * Vous possédez un "interrupteur". Vous pouvez performer socialement sans coût immédiat, mais votre batterie a une capacité limitée. Le danger est l'épuisement silencieux : vous ne sentez la fatigue qu'une fois la limite franchie.
+            
+            * **Stratégie IA :**
+                * **L'Alternance Pendulaire :** Une matinée de collaboration intense doit obligatoirement être suivie d'une après-midi de travail profond en solo. L'équilibre doit se faire sur la journée (échelle 24h), pas sur la semaine.
+            """)
                 
-                * **Si Introverti (E < 40) :** Réunions = 🟥 DRAIN (Coût) | Solo = 🟩 RECHARGE.
-                * **Si Extraverti (E > 60) :** Réunions = 🟩 RECHARGE | Solo = 🟥 DRAIN (Ennui).
-                
-                *Légende Graphique : Rouge = Vide la batterie / Vert = Recharge la batterie.*
-                """)
-                
-                st.markdown("---")
                 
                 st.markdown("#### 🔋 Coût Énergétique des Tâches")
                 st.info(f"🔋 **Analyse de la Batterie Interne :** {data.get('analysis_social', 'Calcul...')}")
