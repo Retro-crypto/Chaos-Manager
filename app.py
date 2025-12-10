@@ -363,24 +363,26 @@ if submitted:
                     """, unsafe_allow_html=True)
                     
                 with col_radar:
-                    # Ton radar existant
+                    # 1. On prépare les données
                     df_scores = pd.DataFrame(dict(r=list(final_scores.values()), theta=list(final_scores.keys())))
-                    st.plotly_chart(fig, use_container_width=True)
-        # ... (dans app.py, section Radar)
+                    
+                    # 2. On crée la figure de base
                     fig = px.line_polar(df_scores, r='r', theta='theta', line_close=True, range_r=[0,100])
                     fig.update_traces(fill='toself', line_color='#FF4B4B')
                     
-                    # CORRECTION MARGES ET POLICES
+                    # 3. On applique le correctif visuel (Marges + Police)
                     fig.update_layout(
                         paper_bgcolor="rgba(0,0,0,0)", 
                         plot_bgcolor="rgba(0,0,0,0)", 
-                        font=dict(color="white", size=11), # Taille réduite
+                        font=dict(color="white", size=10), # Police réduite pour éviter la coupe
                         margin=dict(l=40, r=40, t=30, b=30), # Marges forcées
                         polar=dict(
                             radialaxis=dict(visible=True, range=[0, 100], color="#555"),
                             angularaxis=dict(color="white")
                         )
                     )
+                    
+                    # 4. ENFIN, on affiche le graphique
                     st.plotly_chart(fig, use_container_width=True)
                 # Aperçu Planning (Tableau)
                 st.subheader("📅 Aperçu Stratégique")
