@@ -107,61 +107,34 @@ def parse_schedule(inputs):
     """
     
     # --- A. MODE SIMULATION (GRATUIT & RAPIDE) ---
-    # --- A. MODE SIMULATION (GRATUIT & RAPIDE) ---
     if DEBUG_MODE:
-        # Récupération des inputs
+        # Récupération pour la simulation graphiques
         scores = inputs.get("scores", {})
         e_score = scores.get("Extraversion", 50)
-        c_score = scores.get("Conscience", 50)
-        n_score = scores.get("Névrosisme", 50)
         chrono = inputs.get("work_style", {}).get("chronotype", "🐻 Ours")
         
-        # 1. GENERATION TEXTE : ANALYSE GLOBALE (Tab 1)
-        if c_score > 70:
-            txt_global = "Votre haute Conscience permet une architecture rigide. Le planning ci-dessous minimise l'incertitude."
-        elif c_score < 30:
-            txt_global = "Votre profil divergent nécessite de la variété. Nous avons fragmenté les blocs pour maintenir la dopamine."
-        else:
-            txt_global = "Profil équilibré détecté. Le planning alterne focus et flexibilité pour optimiser l'endurance."
-
-        # 2. GENERATION TEXTE : ANALYSE BIO (Tab 2)
-        if "Lion" in chrono:
-            peak_hour = 9
-            txt_bio = "En tant que Lion, votre fenêtre de tir cognitive est matinale (07h-11h). C'est là que votre cortisol est un super-carburant."
-        elif "Loup" in chrono:
-            peak_hour = 19
-            txt_bio = "Votre chronotype Loup indique une inertie matinale. L'IA a repoussé les tâches lourdes pour s'aligner sur votre pic du soir."
-        elif "Dauphin" in chrono:
-            peak_hour = 15
-            txt_bio = "Votre sommeil fragile (Dauphin) rend votre énergie erratique. Le planning vise des sprints courts plutôt qu'un marathon."
-        else: # Ours
-            peak_hour = 12
-            txt_bio = "Votre biorythme solaire (Ours) est stable. L'objectif est de protéger le pic de 10h-14h contre les interruptions."
-            
-        # Simulation Courbe
+        # 1. SIMULATION COURBE ÉNERGIE
         energy_curve = []
+        peak_hour = 12 
+        if "Lion" in chrono: peak_hour = 9
+        elif "Loup" in chrono: peak_hour = 19
+        elif "Dauphin" in chrono: peak_hour = 15
+        
         for h in range(6, 24):
             dist = abs(h - peak_hour)
             level = max(10, 100 - (dist * 10) + random.randint(-5, 5))
             energy_curve.append({"heure": h, "niveau": level})
 
-        # 3. GENERATION TEXTE : ANALYSE SOCIALE (Tab 3)
+        # 2. SIMULATION MATRICE
         social_impact = (e_score - 50) * 2 
-        if e_score < 30:
-            txt_social = "⚠️ Alerte Introversion : Les interactions humaines sont coûteuses pour vous. 1h de réunion consomme autant de batterie que 2h de code."
-        elif e_score > 70:
-            txt_social = "✅ Moteur Social : L'isolement vous vide. Le planning doit inclure des interactions pour recharger votre batterie."
-        else:
-            txt_social = "Profil Ambivert : Vous tolérez bien les réunions, mais elles ne doivent pas empiéter sur le Deep Work."
-
         matrix_data = [
             {"tache": "Réunions / Brainstorm", "impact": social_impact, "type": "Social"},
             {"tache": "Deep Work Solitaire", "impact": -social_impact, "type": "Focus"},
             {"tache": "Admin / Routine", "impact": -20, "type": "Neutre"},
-            {"tache": "Urgence / Crise", "impact": n_score * -1, "type": "Stress"},
+            {"tache": "Urgence / Crise", "impact": scores.get("Névrosisme", 50) * -1, "type": "Stress"},
         ]
 
-        # 4. RETOUR JSON ENRICHI
+        # 3. RÉPONSE SIMULÉE (DENSIFIÉE)
         return json.dumps({
             "rarity": "TEST MODE ACTIF",
             "archetype": f"Simulateur : {chrono.split(' ')[1] if ' ' in chrono else chrono}",
@@ -176,11 +149,7 @@ def parse_schedule(inputs):
                 { "titre": "🔄 Reset Cognitif", "start_iso": "2025-12-12T16:00:00", "end_iso": "2025-12-12T16:20:00", "categorie": "Santé", "description": "Marche ou NSDR." }
             ],
             "chart_energy": energy_curve,
-            "chart_matrix": matrix_data,
-            # NOUVEAUX CHAMPS TEXTE
-            "analysis_global": txt_global,
-            "analysis_bio": txt_bio,
-            "analysis_social": txt_social
+            "chart_matrix": matrix_data
         })
 
     # --- B. MODE RÉEL (GEMINI) ---
