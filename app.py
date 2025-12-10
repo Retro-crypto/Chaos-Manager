@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.express as px
 from backend import parse_schedule, generate_ics_file
 
-st.set_page_config(page_title="Chaos Manager V5", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="Chaos Manager V6", page_icon="🧠", layout="wide")
 
 # --- CSS & STYLE ---
 st.markdown("""
@@ -12,40 +12,13 @@ st.markdown("""
     .stApp { background-color: #0e1117; }
     
     /* Le Badge Tech */
-    .tech-badge {
-        background-color: #1c202a; 
-        border: 1px solid #00ff00; 
-        color: #00ff00; 
-        padding: 4px 8px; 
-        border-radius: 4px; 
-        font-family: monospace; 
-        font-size: 11px;
-        display: inline-block;
-        margin-bottom: 10px;
-        box-shadow: 0 0 8px rgba(0, 255, 0, 0.1);
-    }
+    .tech-badge { background-color: #1c202a; border: 1px solid #00ff00; color: #00ff00; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 11px; display: inline-block; margin-bottom: 10px; box-shadow: 0 0 8px rgba(0, 255, 0, 0.1); }
 
-    /* Boite Explication Scientifique */
-    .concept-box {
-        background-color: #13151b;
-        border-left: 3px solid #FF4B4B;
-        padding: 25px;
-        border-radius: 0 10px 10px 0;
-        margin-bottom: 30px;
-        font-size: 15px;
-        line-height: 1.6;
-    }
-    .science-term { color: #FF4B4B; font-weight: bold; }
+    /* Boite Explication */
+    .concept-box { background-color: #13151b; border-left: 3px solid #FF4B4B; padding: 25px; border-radius: 0 10px 10px 0; margin-bottom: 30px; font-size: 15px; line-height: 1.6; }
     
-    /* Comparaison Profils (Plus compacte) */
-    .profile-example {
-        background-color: #21232b;
-        padding: 15px;
-        border-radius: 8px;
-        text-align: center;
-        border: 1px solid #333;
-        font-size: 13px; /* Police réduite */
-    }
+    /* Comparaison Profils */
+    .profile-example { background-color: #21232b; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #333; font-size: 13px; }
     .versus { font-size: 18px; font-weight: bold; color: #666; text-align: center; margin-top: 40px;}
     
     /* Reste du style */
@@ -59,92 +32,44 @@ st.markdown("""
 # --- SIDEBAR ---
 with st.sidebar:
     st.header("🧠 Chaos Manager")
-    st.caption("v5.1 (Stable)")
+    st.caption("v6.0 (Neuro-Engine)")
     st.markdown('<div class="tech-badge">⚡ CORE: GEMINI 3.0 PRO</div>', unsafe_allow_html=True)
-    st.markdown('<div class="tech-badge">🔐 PROMPTS: PROPRIETARY</div>', unsafe_allow_html=True)
+    st.markdown('<div class="tech-badge">🧬 INPUT: MULTI-VECTOR</div>', unsafe_allow_html=True)
     st.markdown("---")
-    st.info("💡 **Science du Prompting**\nChaque planning est généré par une injection de prompt unique, calculée selon vos vecteurs de personnalité OCEAN.")
+    st.info("💡 **Science**\nNous croisons votre profil **OCEAN** (Cerveau Inné) avec vos **Métriques de Travail** (Habitudes Acquises) pour générer le prompt parfait.")
 
-# --- HEADER & PÉDAGOGIE ---
+# --- HEADER ---
 st.title("🧠 Chaos Manager : Expert Edition")
 st.markdown("### L'ingénierie IA au service de ton neuro-type.")
 
-# --- L'ARGUMENTAIRE SCIENTIFIQUE (Visible & Direct) ---
+# --- PÉDAGOGIE ---
 st.markdown("""
 <div class="concept-box">
-    <b>Pourquoi les agendas classiques échouent pour 48% des gens ?</b><br><br>
-    Parce qu'ils imposent une structure unique à des cerveaux différents. 
-    Notre algorithme repose sur une approche scientifique double :
-    <br><br>
-    1. 🧬 <b>Le Modèle Big Five (OCEAN) :</b> Nous ne devinons pas qui vous êtes. Nous calibrons l'IA sur vos 5 traits de personnalité fondamentaux (Ouverture, Conscience, Extraversion, Agréabilité, Névrosisme).
-    <br><br>
-    2. 🤖 <b>Le "Psychometric Prompt Engineering" :</b> C'est notre innovation majeure. Contrairement à ChatGPT qui utilise un ton générique, notre système sélectionne dynamiquement des <i>System Instructions</i> secrètes. 
+    <b>Pourquoi connaître son type OCEAN ne suffit pas ?</b><br><br>
+    Savoir que vous êtes "Consciencieux" (Test OCEAN/MBTI) est un bon début. Mais cela ne dit pas comment vous réagissez à une deadline de 2h ou au bruit ambiant.<br>
+    Notre algorithme <b>Neuro-Cross™</b> croise deux couches de données :
     <br>
-    <i>Exemple : Si vous êtes détecté "Faible Discipline / Haute Impulsion", l'IA n'essaiera pas de vous faire lever à 5h du matin. Elle activera le protocole "Dopamine Sprint" pour maximiser votre hyperfocus.</i>
+    1. 🧠 <b>Le Hardware (Votre Personnalité) :</b> Vos traits innés (OCEAN).
+    <br>
+    2. ⚙️ <b>Le Software (Votre Modus Operandi) :</b> Vos mécanismes de travail actuels (Focus, Résistance au stress, Chronotype).
 </div>
 """, unsafe_allow_html=True)
 
-st.write("👀 **Visualisez l'impact du Prompting Adaptatif sur 2 profils opposés :**")
-
-# COLONNES COMPACTES
-c1, c2, c3 = st.columns([1, 0.15, 1])
-
-with c1:
-    st.markdown("""
-    <div class="profile-example">
-        <strong style="font-size:16px;">👤 Profil A : "Le Soldat"</strong><br>
-        <span style="color:#aaa;">(Haute Discipline, Basse Ouverture)</span>
-        <hr style="margin:10px 0; border-color:#444;">
-        <p style="color:#aaffaa; font-weight:bold;">✅ Stratégie IA générée :</p>
-        <ul style="text-align:left; padding-left:20px; margin-bottom:5px;">
-            <li>Planning linéaire (9h-18h)</li>
-            <li>Pauses fixes de 15 min</li>
-            <li>Objectif : Constance</li>
-        </ul>
-        <i style="color:#666;">-> L'IA agit comme un "Architecte".</i>
-    </div>
-    """, unsafe_allow_html=True)
-    
-with c2:
-    st.markdown('<div class="versus">VS</div>', unsafe_allow_html=True)
-    
-with c3:
-    st.markdown("""
-    <div class="profile-example">
-        <strong style="font-size:16px;">👤 Profil B : "L'Artiste"</strong><br>
-        <span style="color:#aaa;">(Haute Impulsion, Basse Discipline)</span>
-        <hr style="margin:10px 0; border-color:#444;">
-        <p style="color:#ffaaaa; font-weight:bold;">✅ Stratégie IA générée :</p>
-        <ul style="text-align:left; padding-left:20px; margin-bottom:5px;">
-            <li>Blocs "Deep Work" de 4h</li>
-            <li>Zéro contrainte le matin</li>
-            <li>Objectif : Intensité</li>
-        </ul>
-        <i style="color:#666;">-> L'IA agit comme un "Coach de Sprint".</i>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# ... LE RESTE DU CODE (FORMULAIRE) ...
 # --- FORMULAIRE ---
-st.markdown("#### 1. Calibration Neuro-Psychologique")
-
-st.caption("Importez vos données ou faites une estimation rapide. L'IA va sélectionner les 'Secret Prompts' adaptés à tes scores.")
-
-# ... (Le début du code reste inchangé) ...
+st.write("#### 1. Calibration du 'Hardware' (Personnalité)")
+st.caption("Importez vos données ou faites une estimation rapide.")
 
 with st.form("psycho_form"):
     
-    # === C'EST ICI QUE SE TROUVENT LES ONGLETS (TABS) ===
+    # === ONGLETS OCEAN ===
     tab1, tab2 = st.tabs(["📂 J'ai déjà mes scores (Expert)", "🔍 Je ne sais pas (Estimation)"])
- 
-# --- ONGLET 1 : SAISIE EXPERTE (Sliders + Double Explication) ---
+    
+    # --- ONGLET 1 : SAISIE EXPERTE (Numérique + Explication) ---
     with tab1:
         st.markdown("""
         <div style="background-color: #1c202a; padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #00ff00;">
-            ✅ <b>Mode Expert :</b> Ajustez les curseurs selon vos résultats.
-            L'IA détecte votre polarité dominante pour calibrer les instructions cachées.
+            ✅ <b>Mode Expert :</b> Entrez vos scores (0-100).
+            L'IA détectera votre polarité dominante pour calibrer les instructions cachées.
         </div>
         """, unsafe_allow_html=True)
 
@@ -154,32 +79,29 @@ with st.form("psycho_form"):
             st.markdown("##### 🧠 Le Cerveau (Traitement de l'Info)")
             
             # OUVERTURE
-            o_score = st.slider("🌊 Ouverture (O) - Créativité", 0, 100, 50, key="o_in")
+            o_score = st.number_input("🌊 Ouverture (O) - Créativité", 0, 100, 0, key="o_in")
             st.markdown("""
-            <div style="font-size:13px; color:#aaa; margin-bottom:20px; border-left:2px solid #555; padding-left:10px; line-height:1.5;">
-                <b>L'impact Productif :</b><br>
-                ⬆️ <b>Haut (>75) :</b> Vous êtes un <i>Explorateur</i>. Travailler 4h sur le même sujet vous éteint. L'IA doit alterner les contextes.<br>
-                ⬇️ <b>Bas (<25) :</b> Vous êtes un <i>Pragmatique</i>. Vous excellez dans l'approfondissement d'une méthode. L'IA favorisera la répétition efficace.
+            <div style="font-size:12px; color:#aaa; margin-bottom:15px; border-left:2px solid #555; padding-left:10px;">
+                <b>⬆️ Haut (>75 - Visionnaire) :</b> Besoin de variété et d'innovation.<br>
+                <b>⬇️ Bas (<25 - Pragmatique) :</b> Besoin de processus et d'efficacité prouvée.
             </div>
             """, unsafe_allow_html=True)
             
             # CONSCIENCE
-            c_score = st.slider("📐 Conscience (C) - Organisation", 0, 100, 50, key="c_in")
+            c_score = st.number_input("📐 Conscience (C) - Organisation", 0, 100, 0, key="c_in")
             st.markdown("""
-            <div style="font-size:13px; color:#aaa; margin-bottom:20px; border-left:2px solid #555; padding-left:10px; line-height:1.5;">
-                <b>L'impact Productif :</b><br>
-                ⬆️ <b>Haut (>75) :</b> Vous êtes un <i>Architecte</i>. Vous avez besoin d'un plan béton à l'avance pour être serein.<br>
-                ⬇️ <b>Bas (<25) :</b> Vous êtes un <i>Pompier</i>. La planification lointaine vous ennuie. L'IA utilisera des "Micro-Deadlines" pour créer l'urgence nécessaire.
+            <div style="font-size:12px; color:#aaa; margin-bottom:15px; border-left:2px solid #555; padding-left:10px;">
+                <b>⬆️ Haut (>75 - Architecte) :</b> Besoin de plans détaillés à l'avance.<br>
+                <b>⬇️ Bas (<25 - Pompier) :</b> Besoin d'urgence et de deadlines courtes pour s'activer.
             </div>
             """, unsafe_allow_html=True)
 
             # EXTRAVERSION
-            e_score = st.slider("⚡ Extraversion (E) - Énergie Sociale", 0, 100, 50, key="e_in")
+            e_score = st.number_input("⚡ Extraversion (E) - Énergie Sociale", 0, 100, 0, key="e_in")
             st.markdown("""
-            <div style="font-size:13px; color:#aaa; margin-bottom:20px; border-left:2px solid #555; padding-left:10px; line-height:1.5;">
-                <b>L'impact Productif :</b><br>
-                ⬆️ <b>Haut (>75) :</b> Vous êtes un <i>Connecteur</i>. L'isolement vous vide. L'IA placera les tâches collaboratives aux moments de creux.<br>
-                ⬇️ <b>Bas (<25) :</b> Vous êtes un <i>Deep Worker</i>. Les autres drainent votre batterie. L'IA créera des "Sanctuaires de Silence" inviolables.
+            <div style="font-size:12px; color:#aaa; margin-bottom:15px; border-left:2px solid #555; padding-left:10px;">
+                <b>⬆️ Haut (>75 - Connecteur) :</b> L'isolement vous vide, le groupe vous recharge.<br>
+                <b>⬇️ Bas (<25 - Deep Worker) :</b> Le groupe vous vide, le silence vous recharge.
             </div>
             """, unsafe_allow_html=True)
         
@@ -187,143 +109,138 @@ with st.form("psycho_form"):
             st.markdown("##### ❤️ Le Coeur (Gestion Émotionnelle)")
             
             # AGRÉABILITÉ
-            a_score = st.slider("🤝 Agréabilité (A) - Coopération", 0, 100, 50, key="a_in")
+            a_score = st.number_input("🤝 Agréabilité (A) - Coopération", 0, 100, 0, key="a_in")
             st.markdown("""
-            <div style="font-size:13px; color:#aaa; margin-bottom:20px; border-left:2px solid #555; padding-left:10px; line-height:1.5;">
-                <b>L'impact Productif :</b><br>
-                ⬆️ <b>Haut (>75) :</b> Vous êtes un <i>Diplomate</i>. Vous avez du mal à dire non. L'IA bloquera votre temps pour vous protéger.<br>
-                ⬇️ <b>Bas (<25) :</b> Vous êtes un <i>Stratège</i>. Vous priorisez la mission sur l'humain. L'IA ira droit au but sans fioritures.
+            <div style="font-size:12px; color:#aaa; margin-bottom:15px; border-left:2px solid #555; padding-left:10px;">
+                <b>⬆️ Haut (>75 - Diplomate) :</b> Priorité à l'équipe (Risque : ne sait pas dire non).<br>
+                <b>⬇️ Bas (<25 - Stratège) :</b> Priorité à l'objectif (Force : négociation ferme).
             </div>
             """, unsafe_allow_html=True)
             
             # NÉVROSISME
-            n_score = st.slider("🌪️ Névrosisme (N) - Sensibilité Stress", 0, 100, 50, key="n_in")
+            n_score = st.number_input("🌪️ Névrosisme (N) - Sensibilité Stress", 0, 100, 0, key="n_in")
             st.markdown("""
-            <div style="font-size:13px; color:#aaa; margin-bottom:20px; border-left:2px solid #555; padding-left:10px; line-height:1.5;">
-                <b>L'impact Productif :</b><br>
-                ⬆️ <b>Haut (>75) :</b> Vous êtes une <i>Sentinelle</i>. L'incertitude vous paralyse. L'IA hyper-détaillera le plan pour rassurer votre cerveau.<br>
-                ⬇️ <b>Bas (<25) :</b> Vous êtes un <i>Stoïque</i>. Le chaos ne vous touche pas. L'IA vous donnera des objectifs larges et ambitieux.
+            <div style="font-size:12px; color:#aaa; margin-bottom:15px; border-left:2px solid #555; padding-left:10px;">
+                <b>⬆️ Haut (>75 - Sentinelle) :</b> Hyper-vigilance aux risques (Besoin de rassurance).<br>
+                <b>⬇️ Bas (<25 - Stoïque) :</b> Imperméabilité au stress (Force calme).
             </div>
             """, unsafe_allow_html=True)
-    # --- ONGLET 2 : SLIDERS (Corrigé & Détaillé) ---
+
+    # --- ONGLET 2 : SLIDERS (Estimation) ---
     with tab2:
         st.markdown("""
         <div style="background-color: #262730; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; border: 1px solid #444;">
-            ℹ️ <b>Calibration Cognitive :</b> Positionnez le curseur selon votre tendance naturelle. 
+            ℹ️ <b>Calibration Cognitive :</b> Positionnez le curseur selon votre tendance naturelle au travail. 
             Il n'y a pas de "bon" score. Un score bas en Conscience favorise la créativité, un score haut favorise l'exécution.
         </div>
         """, unsafe_allow_html=True)
 
-        # On utilise des triples guillemets (""") pour éviter le bug des guillemets internes
-        
-        # --- O : OUVERTURE ---
-        st.markdown("#### 🌊 1. Facteur O : La Nouveauté")
-        st.caption("🧠 *Impact Travail : Tolérance à la routine vs Besoin d'innovation.*")
-        st.markdown("""**0% (Pragmatique)** : J'aime les processus clairs et l'efficacité prouvée.<br>**100% (Explorateur)** : Je m'ennuie vite, j'ai besoin de changer de méthode souvent.""", unsafe_allow_html=True)
-        o_est = st.slider("Position O :", 0, 100, 50, key="slider_o", label_visibility="collapsed")
+        # O
+        st.markdown("#### 🌊 1. Facteur O : La Nouveauté (Ouverture)")
+        st.caption("🧠 *Impact Travail : Capacité à tolérer la routine vs Besoin d'innovation.*")
+        st.markdown("""**0% (Pragmatique)** : J'aime les processus clairs, la répétition, l'efficacité éprouvée.<br>**100% (Explorateur)** : Je m'ennuie vite, j'ai besoin de théoriser et de changer de méthode souvent.""", unsafe_allow_html=True)
+        o_est = st.slider("Votre positionnement O :", 0, 100, 50, key="slider_o", label_visibility="collapsed")
         st.markdown("---")
 
-        # --- C : CONSCIENCE ---
-        st.markdown("#### 📐 2. Facteur C : La Structure")
-        st.caption("🧠 *Impact Travail : Gestion des délais et finition.*")
-        # CORRECTION BUG ICI : On utilise les triples guillemets pour encadrer le tout
-        st.markdown("""**0% (Spontané)** : Je travaille par "bursts" d'énergie, flexible mais parfois désordonné.<br>**100% (Architecte)** : Je planifie tout, je suis mal à l'aise sans plan précis.""", unsafe_allow_html=True)
-        c_est = st.slider("Position C :", 0, 100, 50, key="slider_c", label_visibility="collapsed")
+        # C
+        st.markdown("#### 📐 2. Facteur C : La Structure (Conscience)")
+        st.caption("🧠 *Impact Travail : Gestion des délais et finition des tâches.*")
+        st.markdown("""**0% (Spontané)** : Je travaille par "bursts" d'énergie, je suis flexible mais désordonné. Je démarre beaucoup de choses.<br>**100% (Architecte)** : Je planifie tout à l'avance, je finis toujours ce que je commence, je suis mal à l'aise sans plan.""", unsafe_allow_html=True)
+        c_est = st.slider("Votre positionnement C :", 0, 100, 50, key="slider_c", label_visibility="collapsed")
         st.markdown("---")
 
-        # --- E : EXTRAVERSION ---
-        st.markdown("#### ⚡ 3. Facteur E : La Stimulation")
-        st.caption("🧠 *Impact Travail : Besoin d'interaction pour réfléchir.*")
-        st.markdown("""**0% (Deep Worker)** : L'isolement me rend productif. Le bruit me draine.<br>**100% (Connecteur)** : Je pense en parlant. J'ai besoin du buzz de l'équipe.""", unsafe_allow_html=True)
-        e_est = st.slider("Position E :", 0, 100, 50, key="slider_e", label_visibility="collapsed")
+        # E
+        st.markdown("#### ⚡ 3. Facteur E : La Stimulation (Extraversion)")
+        st.caption("🧠 *Impact Travail : Gestion de l'environnement et des réunions.*")
+        st.markdown("""**0% (Deep Worker)** : Les interactions me drainent. Je suis ultra-efficace seul dans le silence.<br>**100% (Connecteur)** : Je pense en parlant. L'isolement m'épuise, j'ai besoin du buzz de l'équipe pour avancer.""", unsafe_allow_html=True)
+        e_est = st.slider("Votre positionnement E :", 0, 100, 50, key="slider_e", label_visibility="collapsed")
         st.markdown("---")
 
-        # --- A : AGRÉABILITÉ ---
-        st.markdown("#### 🤝 4. Facteur A : La Coopération")
-        st.caption("🧠 *Impact Travail : Capacité à dire Non et négocier.*")
-        st.markdown("""**0% (Challenger)** : Je priorise l'objectif, je sais dire non fermement.<br>**100% (Diplomate)** : Je cherche l'harmonie, j'ai du mal à refuser une aide.""", unsafe_allow_html=True)
-        a_est = st.slider("Position A :", 0, 100, 50, key="slider_a", label_visibility="collapsed")
+        # A
+        st.markdown("#### 🤝 4. Facteur A : La Coopération (Agréabilité)")
+        st.caption("🧠 *Impact Travail : Négociation et capacité à dire Non.*")
+        st.markdown("""**0% (Challenger)** : Je priorise mes objectifs, je sais dire non fermement, quitte à être perçu comme froid.<br>**100% (Diplomate)** : Je cherche l'harmonie, j'ai du mal à refuser une demande d'aide, je fais passer l'équipe avant moi.""", unsafe_allow_html=True)
+        a_est = st.slider("Votre positionnement A :", 0, 100, 50, key="slider_a", label_visibility="collapsed")
         st.markdown("---")
 
-        # --- N : NÉVROSISME ---
-        st.markdown("#### 🌪️ 5. Facteur N : La Réactivité")
-        st.caption("🧠 *Impact Travail : Gestion du stress et des risques.*")
-        st.markdown("""**0% (Roc)** : Le stress glisse sur moi. Calme olympien en crise.<br>**100% (Sentinelle)** : Je repère tous les risques. Le stress peut me paralyser.""", unsafe_allow_html=True)
-        n_est = st.slider("Position N :", 0, 100, 50, key="slider_n", label_visibility="collapsed")
+        # N
+        st.markdown("#### 🌪️ 5. Facteur N : La Réactivité (Névrosisme)")
+        st.caption("🧠 *Impact Travail : Gestion du stress et perfectionnisme.*")
+        st.markdown("""**0% (Roc)** : Le stress glisse sur moi. Je reste calme en crise, parfois détaché.<br>**100% (Sentinelle)** : Je suis hyper-vigilant aux risques. Je repère les erreurs, mais le stress me paralyse ou me rend perfectionniste.""", unsafe_allow_html=True)
+        n_est = st.slider("Votre positionnement N :", 0, 100, 50, key="slider_n", label_visibility="collapsed")
 
-
- st.markdown("---")
+    # --- SECTION SOFTWARE (Breus, Rubin, Lencioni) ---
+    st.markdown("---")
     st.write("#### 2. Calibration du 'Software' (Mécanique de Travail)")
     st.caption("Ici, on analyse vos habitudes selon 3 modèles de productivité reconnus.")
 
-    # --- MODEL 1: CHRONOTYPES (Dr. Michael Breus) ---
+    # MODEL 1: CHRONOTYPES
     st.markdown("""
     <div style="margin-top:20px; border-left:3px solid #FF4B4B; padding-left:15px;">
         <h5>🦁 Le Rythme Biologique (Modèle du Dr. Michael Breus)</h5>
-        <small>Votre horloge interne dicte vos pics de cortisol. Choisir le bon animal permet à l'IA de placer le "Deep Work" au seul moment où votre cerveau est chimiquement prêt.</small>
+        <small>Votre horloge interne dicte vos pics de cortisol.</small>
     </div>
     """, unsafe_allow_html=True)
 
     col_chrono_desc, col_chrono_sel = st.columns([1.5, 1])
     with col_chrono_desc:
         st.markdown("""
-        * **🦁 Le Lion (Matin) :** Réveil naturel tôt. Énergie explosive le matin. Épuisé à 21h. *Stratégie : Tâches analytiques dès 8h.*
-        * **🐻 L'Ours (Solaire) :** Suit le soleil. Pic de 10h à 14h. Besoin de social. *Stratégie : Planning classique équilibré.*
-        * **🐺 Le Loup (Soir) :** Déteste le matin. Pic créatif à 19h ou minuit. *Stratégie : "Night Shift". Pas de tâches lourdes avant 11h.*
-        * **🐬 Le Dauphin (Irrégulier) :** Sommeil léger, anxieux, énergie par à-coups. *Stratégie : Sprints courts et flexibles.*
+        * **🦁 Le Lion (Matin) :** Réveil naturel tôt. Épuisé à 21h. *Stratégie : Tâches analytiques dès 8h.*
+        * **🐻 L'Ours (Solaire) :** Suit le soleil. Pic de 10h à 14h. *Stratégie : Planning classique équilibré.*
+        * **🐺 Le Loup (Soir) :** Pic créatif à 19h ou minuit. *Stratégie : Pas de tâches lourdes avant 11h.*
+        * **🐬 Le Dauphin (Irrégulier) :** Sommeil léger, anxieux. *Stratégie : Sprints courts et flexibles.*
         """)
     with col_chrono_sel:
         chronotype = st.radio("Quel animal êtes-vous ?", ["🦁 Lion", "🐻 Ours", "🐺 Loup", "🐬 Dauphin"], label_visibility="collapsed")
 
-    # --- MODEL 2: FOUR TENDENCIES (Gretchen Rubin) ---
+    # MODEL 2: FOUR TENDENCIES
     st.markdown("---")
     st.markdown("""
     <div style="border-left:3px solid #FF4B4B; padding-left:15px;">
         <h5>⚡ La Discipline (Modèle des "4 Tendencies" de Gretchen Rubin)</h5>
-        <small>Comment réagissez-vous aux attentes ? L'IA utilise ce modèle pour savoir comment formuler ses ordres (ou ses suggestions).</small>
+        <small>Comment réagissez-vous aux attentes ?</small>
     </div>
     """, unsafe_allow_html=True)
 
     col_rubin_desc, col_rubin_sel = st.columns([1.5, 1])
     with col_rubin_desc:
         st.markdown("""
-        * **🫡 Upholder (Le Discipliné) :** Respecte les règles et ses propres objectifs. *Besoin : Un plan clair.*
-        * **🤔 Questioner (Le Sceptique) :** Ne respecte que ce qui a du sens/logique. Résiste à l'arbitraire. *Besoin : Des justifications.*
-        * **🙏 Obliger (Le Dévoué) :** Fait tout pour les autres, procrastine pour lui-même. *Besoin : Responsabilité externe (Accountability).*
-        * **🧨 Rebel (Le Rebelle) :** Résiste à toute contrainte, même les siennes. *Besoin : Choix et liberté (Challenge).*
+        * **🫡 Upholder (Le Discipliné) :** Respecte les règles. *Besoin : Un plan clair.*
+        * **🤔 Questioner (Le Sceptique) :** Ne respecte que la logique. *Besoin : Des justifications.*
+        * **🙏 Obliger (Le Dévoué) :** Fait tout pour les autres. *Besoin : Responsabilité externe.*
+        * **🧨 Rebel (Le Rebelle) :** Résiste à toute contrainte. *Besoin : Choix et liberté.*
         """)
     with col_rubin_sel:
         tendency = st.radio("Votre tendance dominante :", ["🫡 Upholder", "🤔 Questioner", "🙏 Obliger", "🧨 Rebel"], label_visibility="collapsed")
 
-    # --- MODEL 3: WORKING GENIUS (Patrick Lencioni) ---
+    # MODEL 3: WORKING GENIUS
     st.markdown("---")
     st.markdown("""
     <div style="border-left:3px solid #FF4B4B; padding-left:15px;">
         <h5>⚙️ Le Moteur d'Action (Inspiré du "Working Genius" de P. Lencioni)</h5>
-        <small>Quelle étape du travail vous donne de l'énergie (vs vous épuise) ?</small>
+        <small>Quelle étape du travail vous donne de l'énergie ?</small>
     </div>
     """, unsafe_allow_html=True)
 
     col_len_desc, col_len_sel = st.columns([1.5, 1])
     with col_len_desc:
         st.markdown("""
-        * **✨ Wonder/Invention (L'Idéateur) :** J'aime le début, brainstormer, inventer. Je déteste finir/polir.
-        * **🔥 Galvanizing (L'Activateur) :** J'aime motiver, lancer la machine, organiser le chaos.
-        * **🏗️ Tenacity (Le Finisseur) :** J'aime l'exécution, cocher les cases, aller au bout des choses. Je déteste le flou.
+        * **✨ Wonder/Invention (L'Idéateur) :** J'aime inventer. Je déteste finir.
+        * **🔥 Galvanizing (L'Activateur) :** J'aime lancer la machine, organiser le chaos.
+        * **🏗️ Tenacity (Le Finisseur) :** J'aime l'exécution, cocher les cases.
         """)
     with col_len_sel:
         work_genius = st.radio("Votre zone de génie :", ["✨ Idéateur (Début)", "🔥 Activateur (Milieu)", "🏗️ Finisseur (Fin)"], label_visibility="collapsed")
 
     st.markdown("---")
     st.write("#### 3. La Mission")
-    mission = st.text_area("Vos impératifs (Vrac accepté) :", placeholder="Ex: Rendre projet Python, Sport ce soir...", height=100)
+    mission = st.text_area("Vos impératifs (Vrac accepté) :", placeholder="Ex: Rendre projet Python, Sport ce soir, Appeler Maman...", height=100)
     
     submitted = st.form_submit_button("🚀 LANCER L'ANALYSE NEURO-CROSS", type="primary", use_container_width=True)
 
-# --- LOGIQUE MISE À JOUR ---
+# --- LOGIQUE DE TRAITEMENT ---
 if submitted:
-    # ... (Code précédent pour les scores OCEAN) ...
-    # (Copie le bloc logique OCEAN précédent ici)
+    # Logique OCEAN intelligente
     if o_score + c_score + e_score > 0:
         final_scores = {"Ouverture": o_score, "Conscience": c_score, "Extraversion": e_score, "Agréabilité": a_score, "Névrosisme": n_score}
     else:
@@ -334,13 +251,12 @@ if submitted:
     else:
         with st.spinner("Croisement des vecteurs OCEAN x Rubin x Breus..."):
             
-            # NOUVEAUX INPUTS POUR LE BACKEND
             inputs = {
                 "scores": final_scores,
                 "work_style": {
-                    "chronotype": chronotype, # Ex: "🦁 Lion"
-                    "tendency": tendency,     # Ex: "🧨 Rebel"
-                    "genius": work_genius     # Ex: "✨ Idéateur"
+                    "chronotype": chronotype,
+                    "tendency": tendency,
+                    "genius": work_genius
                 },
                 "mission": mission
             }
@@ -348,7 +264,7 @@ if submitted:
             # Appel Backend
             data = json.loads(parse_schedule(inputs))
             
-            # --- RÉSULTATS (Carte & Radar) ---
+            # --- RÉSULTATS ---
             st.markdown("---")
             col_card, col_radar = st.columns([1, 1])
             
@@ -369,7 +285,6 @@ if submitted:
                 """, unsafe_allow_html=True)
                 
             with col_radar:
-                # Radar (Basé sur les scores OCEAN)
                 df_scores = pd.DataFrame(dict(r=list(final_scores.values()), theta=list(final_scores.keys())))
                 fig = px.line_polar(df_scores, r='r', theta='theta', line_close=True, range_r=[0,100])
                 fig.update_traces(fill='toself', line_color='#FF4B4B')
@@ -392,7 +307,7 @@ if submitted:
             col_blur, col_pitch = st.columns([1.5, 1])
             with col_blur:
                 st.markdown("#### Analyse Croisée (OCEAN x Habitudes) :")
-                st.markdown(f'<div class="blur-text">Votre Conscience ({final_scores["Conscience"]}%) entre en conflit avec votre habitude "{deadline_react}". L IA a détecté un risque élevé de paralysie décisionnelle à 14h...</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="blur-text">Votre Conscience ({final_scores["Conscience"]}%) entre en conflit avec votre habitude "{tendency}". L IA a détecté un risque élevé de paralysie décisionnelle...</div>', unsafe_allow_html=True)
                 st.markdown("#### Les Prompts Secrets Activés :")
                 st.markdown('<div class="blur-text"><System> Override circadian rythm for Night Owl profile...</div>', unsafe_allow_html=True)
 
@@ -400,10 +315,10 @@ if submitted:
                 st.info("📦 **PACK EXPERT (9.90€)**")
                 st.markdown("""
                 ✅ **Planning Intégral** (.ics)
-                ✅ **Analyse Neuro-Cross** (Pourquoi vous bloquez)
-                ✅ **Les Prompts Secrets** (Recette)
+                ✅ **Analyse Neuro-Cross**
+                ✅ **Les Prompts Secrets**
                 """)
-                # LIEN STRIPE LIVE ICI (Celui que tu m'as donné)
+                # LIEN STRIPE LIVE
                 st.link_button("🔓 DÉBLOQUER MAINTENANT", "https://buy.stripe.com/00w7sN5ZW5gp9GggtP0RG00", type="primary")
             
             st.markdown('</div>', unsafe_allow_html=True)
