@@ -403,23 +403,24 @@ if submitted:
 
             # --- ONGLET 2 : LE BIO-RYTHME ---
             with res_tab2:
+                # CORRECTION ICI : Pas de 'with' devant st.markdown et bonne indentation
                 with st.expander("📖 Théorie : La Chronobiologie (Loi de Breus)"):
-                with st.markdown("""
-                **Le principe : L'Alignement Circadien**
-                Votre performance ne dépend pas de votre volonté, mais de votre taux de Cortisol (hormone de l'éveil) et de Mélatonine (hormone du sommeil). Lutter contre ce pic est métaboliquement coûteux.
+                    st.markdown("""
+                    **Le principe : L'Alignement Circadien**
+                    Votre performance ne dépend pas de votre volonté, mais de votre taux de Cortisol (hormone de l'éveil) et de Mélatonine (hormone du sommeil). Lutter contre ce pic est métaboliquement coûteux.
+                    
+                    **Les 4 Chronotypes (Disjonction des cas) :**
+                    * 🦁 **Le Lion (Matin - 15% pop) :** Pic de cortisol très tôt (6h-10h).
+                        * *Stratégie :* Le "Deep Work" analytique doit être fini avant midi. L'après-midi est réservé à l'exécution bête.
+                    * 🐻 **L'Ours (Solaire - 55% pop) :** Suit le cycle du soleil. Montée progressive, pic stable (10h-14h), chute vers 15h.
+                        * *Stratégie :* Planning classique. La sieste éclair ou la marche de 15h est cruciale pour relancer la machine.
+                    * 🐺 **Le Loup (Soir - 15% pop) :** Inertie du sommeil le matin (Cortisol retardé). Pic de créativité et d'éveil le soir (17h-Minuit).
+                        * *Stratégie :* Ne jamais forcer le travail intellectuel avant 11h. Utiliser la nuit pour les tâches complexes.
+                    * 🐬 **Le Dauphin (Irrégulier - 10% pop) :** Sommeil fragmenté, métabolisme nerveux. Pas de pic prévisible.
+                        * *Stratégie :* Fonctionner par opportunisme (quand l'énergie est là, on fonce) et par micro-tâches pour ne pas angoisser le système.
+                    """)
                 
-                **Les 4 Chronotypes (Disjonction des cas) :**
-                * 🦁 **Le Lion (Matin - 15% pop) :** Pic de cortisol très tôt (6h-10h).
-                    * *Stratégie :* Le "Deep Work" analytique doit être fini avant midi. L'après-midi est réservé à l'exécution bête.
-                * 🐻 **L'Ours (Solaire - 55% pop) :** Suit le cycle du soleil. Montée progressive, pic stable (10h-14h), chute vers 15h.
-                    * *Stratégie :* Planning classique. La sieste éclair ou la marche de 15h est cruciale pour relancer la machine.
-                * 🐺 **Le Loup (Soir - 15% pop) :** Inertie du sommeil le matin (Cortisol retardé). Pic de créativité et d'éveil le soir (17h-Minuit).
-                    * *Stratégie :* Ne jamais forcer le travail intellectuel avant 11h. Utiliser la nuit pour les tâches complexes.
-                * 🐬 **Le Dauphin (Irrégulier - 10% pop) :** Sommeil fragmenté, métabolisme nerveux. Pas de pic prévisible.
-                    * *Stratégie :* Fonctionner par opportunisme (quand l'énergie est là, on fonce) et par micro-tâches pour ne pas angoisser le système.
-                """)
                 st.markdown("#### 🌊 Courbe d'Énergie Circadienne")
-                # 2. Le Blabla Bio (NOUVEAU)
                 st.info(f"🧬 **Analyse Chronobiologique :** {data.get('analysis_bio', 'Calcul...')}")
                 
                 energy_data = data.get("chart_energy", [])
@@ -438,25 +439,26 @@ if submitted:
 
             # --- ONGLET 3 : LA MATRICE ---
             with res_tab3:
+                # CORRECTION ICI : Même chose, indentation + suppression du 'with' inutile
                 with st.expander("📖 Théorie : L'Économie de la Batterie Sociale"):
-                with st.markdown("""
-                **Le principe : Le Coût Métabolique de l'Interaction**
-                Chaque tâche a un prix, non pas en temps, mais en "points d'énergie". Ce prix varie radicalement selon votre score d'Extraversion (E).
+                    st.markdown("""
+                    **Le principe : Le Coût Métabolique de l'Interaction**
+                    Chaque tâche a un prix, non pas en temps, mais en "points d'énergie". Ce prix varie radicalement selon votre score d'Extraversion (E).
+                    
+                    **La Matrice de Compatibilité :**
+                    * **Si Extraversion < 40 (Introverti) :**
+                        * *Interaction Sociale (Réunions, Appels) :* **DRAIN (Coût Élevé)**. Votre cerveau sur-analyse les signaux sociaux, ce qui vide la batterie.
+                        * *Isolement (Deep Work) :* **RECHARGE (Gain)**. Le calme permet à votre système nerveux de se réguler.
+                    * **Si Extraversion > 60 (Extraverti) :**
+                        * *Interaction Sociale :* **RECHARGE (Gain)**. L'échange d'idées stimule votre production de dopamine. Vous "pensez en parlant".
+                        * *Isolement prolongé :* **DRAIN (Coût)**. Le silence statique fait chuter votre niveau d'éveil (sous-stimulation).
+                    
+                    **Lecture du Graphique :**
+                    * 🟥 **Rouge (Gauche) :** Tâches qui vident votre batterie. À limiter ou à encadrer par des pauses.
+                    * 🟩 **Vert (Droite) :** Tâches qui vous rechargent. À utiliser comme récompense après un effort difficile.
+                    """)
                 
-                **La Matrice de Compatibilité :**
-                * **Si Extraversion < 40 (Introverti) :**
-                    * *Interaction Sociale (Réunions, Appels) :* **DRAIN (Coût Élevé)**. Votre cerveau sur-analyse les signaux sociaux, ce qui vide la batterie.
-                    * *Isolement (Deep Work) :* **RECHARGE (Gain)**. Le calme permet à votre système nerveux de se réguler.
-                * **Si Extraversion > 60 (Extraverti) :**
-                    * *Interaction Sociale :* **RECHARGE (Gain)**. L'échange d'idées stimule votre production de dopamine. Vous "pensez en parlant".
-                    * *Isolement prolongé :* **DRAIN (Coût)**. Le silence statique fait chuter votre niveau d'éveil (sous-stimulation).
-                
-                **Lecture du Graphique :**
-                * 🟥 **Rouge (Gauche) :** Tâches qui vident votre batterie. À limiter ou à encadrer par des pauses.
-                * 🟩 **Vert (Droite) :** Tâches qui vous rechargent. À utiliser comme récompense après un effort difficile.
-                """)
                 st.markdown("#### 🔋 Coût Énergétique des Tâches")
-                # 3. Le Blabla Social (NOUVEAU)
                 st.info(f"🔋 **Analyse de la Batterie Interne :** {data.get('analysis_social', 'Calcul...')}")
                 
                 matrix_data = data.get("chart_matrix", [])
