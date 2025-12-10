@@ -43,8 +43,13 @@ def parse_schedule(inputs):
             "kryptonite": "Contraintes externes",
             "quote": "Votre énergie est nucléaire, ne la gâchez pas sur des tâches administratives le matin.",
             "planning": [
-                { "titre": "Deep Work (Pic Cortisol)", "start_iso": "2025-12-11T08:00:00", "end_iso": "2025-12-11T11:00:00", "categorie": "Travail", "description": "Zone de génie activée." },
-                { "titre": "Déjeuner", "start_iso": "2025-12-11T12:00:00", "end_iso": "2025-12-11T13:00:00", "categorie": "Santé", "description": "Pause." }
+            { "titre": "🌞 Activation Dopaminergique", "start_iso": "2025-12-12T07:30:00", "end_iso": "2025-12-12T08:00:00", "categorie": "Santé", "description": "Lumière directe + Protéines. Pas de téléphone." },
+            { "titre": "🧠 Deep Work (Pic Cortisol)", "start_iso": "2025-12-12T09:00:00", "end_iso": "2025-12-12T11:30:00", "categorie": "Travail", "description": "Tâche unique : Avancer sur le projet Python." },
+            { "titre": "⚡ Admin Burst (Basse énergie)", "start_iso": "2025-12-12T13:30:00", "end_iso": "2025-12-12T14:30:00", "categorie": "Admin", "description": "Emails, appels, factures. Mode robot." },
+            { "titre": "🔄 Reset Cognitif", "start_iso": "2025-12-12T16:00:00", "end_iso": "2025-12-12T16:20:00", "categorie": "Santé", "description": "NSDR ou Marche rapide." },
+            { "titre": "🎨 Creative Flow (Loup)", "start_iso": "2025-12-12T20:00:00", "end_iso": "2025-12-12T22:00:00", "categorie": "Créativité", "description": "Pas de censure, écriture libre." }
+            { "titre": "Deep Work (Pic Cortisol)", "start_iso": "2025-12-11T08:00:00", "end_iso": "2025-12-11T11:00:00", "categorie": "Travail", "description": "Zone de génie activée." },
+            { "titre": "Déjeuner", "start_iso": "2025-12-11T12:00:00", "end_iso": "2025-12-11T13:00:00", "categorie": "Santé", "description": "Pause." }
             ],
             # On ajoute des prompts secrets plus crédibles
             "secret_prompts": [
