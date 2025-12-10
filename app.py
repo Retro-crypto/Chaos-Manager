@@ -404,7 +404,7 @@ if submitted:
             # --- ONGLET 2 : LE BIO-RYTHME ---
             with res_tab2:
                 with st.expander("📖 Théorie : La Chronobiologie (Loi de Breus)"):
-                st.markdown("""
+                with st.markdown("""
                 **Le principe : L'Alignement Circadien**
                 Votre performance ne dépend pas de votre volonté, mais de votre taux de Cortisol (hormone de l'éveil) et de Mélatonine (hormone du sommeil). Lutter contre ce pic est métaboliquement coûteux.
                 
@@ -439,7 +439,7 @@ if submitted:
             # --- ONGLET 3 : LA MATRICE ---
             with res_tab3:
                 with st.expander("📖 Théorie : L'Économie de la Batterie Sociale"):
-                st.markdown("""
+                with st.markdown("""
                 **Le principe : Le Coût Métabolique de l'Interaction**
                 Chaque tâche a un prix, non pas en temps, mais en "points d'énergie". Ce prix varie radicalement selon votre score d'Extraversion (E).
                 
