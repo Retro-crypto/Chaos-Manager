@@ -418,7 +418,7 @@ if submitted:
                 else:
                     st.warning("⚠️ Données d'énergie non disponibles (Vérifiez que le Backend est bien en mode V7/Debug).")
 
-            # --- ONGLET 3 : LA MATRICE (NOUVEAU) ---
+            # --- ONGLET 3 : LA MATRICE (CORRIGÉ) ---
             with res_tab3:
                 st.markdown("#### 🔋 Coût Énergétique des Tâches")
                 st.caption(f"Impact sur votre batterie sociale (Basé sur Extraversion : {final_scores['Extraversion']}%)")
@@ -435,13 +435,15 @@ if submitted:
                         marker=dict(
                             color=df_matrix['impact'],
                             colorscale='RdYlGn', # Rouge à Vert
-                            midpoint=0
+                            # midpoint=0  <-- C'ETAIT LUI LE COUPABLE (SUPPRIMÉ)
+                            line=dict(color='rgba(255, 255, 255, 0.3)', width=1) # Ajout bordure pour style
                         )
                     ))
                     fig_matrix.update_layout(
                         xaxis_title="Drain (-) vs Recharge (+)",
                         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                        font=dict(color="white")
+                        font=dict(color="white"),
+                        margin=dict(l=10, r=10, t=30, b=30)
                     )
                     st.plotly_chart(fig_matrix, use_container_width=True)
                 else:
