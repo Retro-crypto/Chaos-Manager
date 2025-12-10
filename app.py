@@ -138,14 +138,13 @@ with st.form("psycho_form"):
     
     # === C'EST ICI QUE SE TROUVENT LES ONGLETS (TABS) ===
     tab1, tab2 = st.tabs(["📂 J'ai déjà mes scores (Expert)", "🔍 Je ne sais pas (Estimation)"])
-    
-# --- ONGLET 1 : SAISIE MANUELLE (Valorisante & Pédagogique) ---
+ 
+# --- ONGLET 1 : SAISIE EXPERTE (Sliders + Double Explication) ---
     with tab1:
         st.markdown("""
         <div style="background-color: #1c202a; padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #00ff00;">
-            ✅ <b>Mode Expert Activé :</b> 
-            En entrant vos scores précis, vous permettez à l'IA d'ajuster la "chimie" de votre emploi du temps au pourcent près.
-            <br><small>Compatible avec BigFive-Test, Truity, ou conversion MBTI.</small>
+            ✅ <b>Mode Expert :</b> Ajustez les curseurs selon vos résultats.
+            L'IA détecte votre polarité dominante pour calibrer les instructions cachées.
         </div>
         """, unsafe_allow_html=True)
 
@@ -155,29 +154,32 @@ with st.form("psycho_form"):
             st.markdown("##### 🧠 Le Cerveau (Traitement de l'Info)")
             
             # OUVERTURE
-            o_score = st.number_input("🌊 Ouverture (O) - Score /100", 0, 100, 0, key="o_in")
+            o_score = st.slider("🌊 Ouverture (O) - Créativité", 0, 100, 50, key="o_in")
             st.markdown("""
-            <div style="font-size:13px; color:#aaa; margin-bottom:15px; border-left:2px solid #555; padding-left:10px;">
-                <b>L'impact Productif :</b> Un score élevé (>75) révèle un <i>Cerveau Explorateur</i>. 
-                Travailler 4h sur le même sujet vous éteint. L'IA doit alterner les contextes pour garder votre dopamine active.
+            <div style="font-size:13px; color:#aaa; margin-bottom:20px; border-left:2px solid #555; padding-left:10px; line-height:1.5;">
+                <b>L'impact Productif :</b><br>
+                ⬆️ <b>Haut (>75) :</b> Vous êtes un <i>Explorateur</i>. Travailler 4h sur le même sujet vous éteint. L'IA doit alterner les contextes.<br>
+                ⬇️ <b>Bas (<25) :</b> Vous êtes un <i>Pragmatique</i>. Vous excellez dans l'approfondissement d'une méthode. L'IA favorisera la répétition efficace.
             </div>
             """, unsafe_allow_html=True)
             
             # CONSCIENCE
-            c_score = st.number_input("📐 Conscience (C) - Score /100", 0, 100, 0, key="c_in")
+            c_score = st.slider("📐 Conscience (C) - Organisation", 0, 100, 50, key="c_in")
             st.markdown("""
-            <div style="font-size:13px; color:#aaa; margin-bottom:15px; border-left:2px solid #555; padding-left:10px;">
-                <b>L'impact Productif :</b> Un score bas (<30) n'est pas de la paresse, c'est un <i>Moteur à Urgence</i>. 
-                L'IA remplacera la planification rigide par du "Time-Boxing" agressif et des deadlines courtes.
+            <div style="font-size:13px; color:#aaa; margin-bottom:20px; border-left:2px solid #555; padding-left:10px; line-height:1.5;">
+                <b>L'impact Productif :</b><br>
+                ⬆️ <b>Haut (>75) :</b> Vous êtes un <i>Architecte</i>. Vous avez besoin d'un plan béton à l'avance pour être serein.<br>
+                ⬇️ <b>Bas (<25) :</b> Vous êtes un <i>Pompier</i>. La planification lointaine vous ennuie. L'IA utilisera des "Micro-Deadlines" pour créer l'urgence nécessaire.
             </div>
             """, unsafe_allow_html=True)
 
             # EXTRAVERSION
-            e_score = st.number_input("⚡ Extraversion (E) - Score /100", 0, 100, 0, key="e_in")
+            e_score = st.slider("⚡ Extraversion (E) - Énergie Sociale", 0, 100, 50, key="e_in")
             st.markdown("""
-            <div style="font-size:13px; color:#aaa; margin-bottom:15px; border-left:2px solid #555; padding-left:10px;">
-                <b>L'impact Productif :</b> Détermine votre batterie sociale. 
-                Si vous êtes bas (<40), une réunion inutile vous coûte 2h de concentration. L'IA doit sanctuariser vos temps de silence.
+            <div style="font-size:13px; color:#aaa; margin-bottom:20px; border-left:2px solid #555; padding-left:10px; line-height:1.5;">
+                <b>L'impact Productif :</b><br>
+                ⬆️ <b>Haut (>75) :</b> Vous êtes un <i>Connecteur</i>. L'isolement vous vide. L'IA placera les tâches collaboratives aux moments de creux.<br>
+                ⬇️ <b>Bas (<25) :</b> Vous êtes un <i>Deep Worker</i>. Les autres drainent votre batterie. L'IA créera des "Sanctuaires de Silence" inviolables.
             </div>
             """, unsafe_allow_html=True)
         
@@ -185,20 +187,22 @@ with st.form("psycho_form"):
             st.markdown("##### ❤️ Le Coeur (Gestion Émotionnelle)")
             
             # AGRÉABILITÉ
-            a_score = st.number_input("🤝 Agréabilité (A) - Score /100", 0, 100, 0, key="a_in")
+            a_score = st.slider("🤝 Agréabilité (A) - Coopération", 0, 100, 50, key="a_in")
             st.markdown("""
-            <div style="font-size:13px; color:#aaa; margin-bottom:15px; border-left:2px solid #555; padding-left:10px;">
-                <b>L'impact Productif :</b> Un score haut (>80) fait de vous un <i>Diplomate</i> qui a du mal à dire non. 
-                L'IA doit bloquer des créneaux "Forteresse" pour empêcher les autres de manger votre temps.
+            <div style="font-size:13px; color:#aaa; margin-bottom:20px; border-left:2px solid #555; padding-left:10px; line-height:1.5;">
+                <b>L'impact Productif :</b><br>
+                ⬆️ <b>Haut (>75) :</b> Vous êtes un <i>Diplomate</i>. Vous avez du mal à dire non. L'IA bloquera votre temps pour vous protéger.<br>
+                ⬇️ <b>Bas (<25) :</b> Vous êtes un <i>Stratège</i>. Vous priorisez la mission sur l'humain. L'IA ira droit au but sans fioritures.
             </div>
             """, unsafe_allow_html=True)
             
             # NÉVROSISME
-            n_score = st.number_input("🌪️ Névrosisme (N) - Score /100", 0, 100, 0, key="n_in")
+            n_score = st.slider("🌪️ Névrosisme (N) - Sensibilité Stress", 0, 100, 50, key="n_in")
             st.markdown("""
-            <div style="font-size:13px; color:#aaa; margin-bottom:15px; border-left:2px solid #555; padding-left:10px;">
-                <b>L'impact Productif :</b> C'est votre "Radar à Risques". 
-                Un score élevé (>60) signifie que l'incertitude vous paralyse. L'IA va hyper-structurer votre journée pour calmer l'amygdale.
+            <div style="font-size:13px; color:#aaa; margin-bottom:20px; border-left:2px solid #555; padding-left:10px; line-height:1.5;">
+                <b>L'impact Productif :</b><br>
+                ⬆️ <b>Haut (>75) :</b> Vous êtes une <i>Sentinelle</i>. L'incertitude vous paralyse. L'IA hyper-détaillera le plan pour rassurer votre cerveau.<br>
+                ⬇️ <b>Bas (<25) :</b> Vous êtes un <i>Stoïque</i>. Le chaos ne vous touche pas. L'IA vous donnera des objectifs larges et ambitieux.
             </div>
             """, unsafe_allow_html=True)
     # --- ONGLET 2 : SLIDERS (Corrigé & Détaillé) ---
