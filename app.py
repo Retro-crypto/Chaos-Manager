@@ -252,31 +252,67 @@ with st.form("psycho_form"):
         n_est = st.slider("Position N :", 0, 100, 50, key="slider_n", label_visibility="collapsed")
 
 
-    # ... (Le reste du code reste identique) ...
+ st.markdown("---")
+    st.write("#### 2. Calibration du 'Software' (Mécanique de Travail)")
+    st.caption("Ici, on analyse vos habitudes selon 3 modèles de productivité reconnus.")
+
+    # --- MODEL 1: CHRONOTYPES (Dr. Michael Breus) ---
+    st.markdown("""
+    <div style="margin-top:20px; border-left:3px solid #FF4B4B; padding-left:15px;">
+        <h5>🦁 Le Rythme Biologique (Modèle du Dr. Michael Breus)</h5>
+        <small>Votre horloge interne dicte vos pics de cortisol. Choisir le bon animal permet à l'IA de placer le "Deep Work" au seul moment où votre cerveau est chimiquement prêt.</small>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col_chrono_desc, col_chrono_sel = st.columns([1.5, 1])
+    with col_chrono_desc:
+        st.markdown("""
+        * **🦁 Le Lion (Matin) :** Réveil naturel tôt. Énergie explosive le matin. Épuisé à 21h. *Stratégie : Tâches analytiques dès 8h.*
+        * **🐻 L'Ours (Solaire) :** Suit le soleil. Pic de 10h à 14h. Besoin de social. *Stratégie : Planning classique équilibré.*
+        * **🐺 Le Loup (Soir) :** Déteste le matin. Pic créatif à 19h ou minuit. *Stratégie : "Night Shift". Pas de tâches lourdes avant 11h.*
+        * **🐬 Le Dauphin (Irrégulier) :** Sommeil léger, anxieux, énergie par à-coups. *Stratégie : Sprints courts et flexibles.*
+        """)
+    with col_chrono_sel:
+        chronotype = st.radio("Quel animal êtes-vous ?", ["🦁 Lion", "🐻 Ours", "🐺 Loup", "🐬 Dauphin"], label_visibility="collapsed")
+
+    # --- MODEL 2: FOUR TENDENCIES (Gretchen Rubin) ---
     st.markdown("---")
-    st.write("#### 2. Calibration du 'Software' (Méthodes de Travail)")
-    st.caption("Comment votre cerveau fonctionne-t-il *en situation* ?")
-    
-    col_w1, col_w2 = st.columns(2)
-    with col_w1:
-        focus_span = st.select_slider(
-            "⏱️ Endurance de Concentration Max :",
-            options=["15 min (TDAH)", "45 min (Standard)", "2h (Deep Work)", "4h+ (Hyperfocus)"]
-        )
-        deadline_react = st.radio(
-            "💣 Face à une urgence :",
-            ["Je paralyse", "Je procrastine jusqu'à la fin", "Je m'active (Adrénaline)", "Je planifie froidement"]
-        )
-    
-    with col_w2:
-        chronotype = st.selectbox(
-            "⏰ Votre Pic Biologique :",
-            ["Matin (06h-11h)", "Après-midi (14h-18h)", "Soirée (21h-00h)", "Nuit Profonde (00h-04h)"]
-        )
-        environment = st.selectbox(
-            "🔊 Environnement requis :",
-            ["Silence absolu", "Bruit blanc / LoFi", "Chaos ambiant / Café", "Musique agressive"]
-        )
+    st.markdown("""
+    <div style="border-left:3px solid #FF4B4B; padding-left:15px;">
+        <h5>⚡ La Discipline (Modèle des "4 Tendencies" de Gretchen Rubin)</h5>
+        <small>Comment réagissez-vous aux attentes ? L'IA utilise ce modèle pour savoir comment formuler ses ordres (ou ses suggestions).</small>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col_rubin_desc, col_rubin_sel = st.columns([1.5, 1])
+    with col_rubin_desc:
+        st.markdown("""
+        * **🫡 Upholder (Le Discipliné) :** Respecte les règles et ses propres objectifs. *Besoin : Un plan clair.*
+        * **🤔 Questioner (Le Sceptique) :** Ne respecte que ce qui a du sens/logique. Résiste à l'arbitraire. *Besoin : Des justifications.*
+        * **🙏 Obliger (Le Dévoué) :** Fait tout pour les autres, procrastine pour lui-même. *Besoin : Responsabilité externe (Accountability).*
+        * **🧨 Rebel (Le Rebelle) :** Résiste à toute contrainte, même les siennes. *Besoin : Choix et liberté (Challenge).*
+        """)
+    with col_rubin_sel:
+        tendency = st.radio("Votre tendance dominante :", ["🫡 Upholder", "🤔 Questioner", "🙏 Obliger", "🧨 Rebel"], label_visibility="collapsed")
+
+    # --- MODEL 3: WORKING GENIUS (Patrick Lencioni) ---
+    st.markdown("---")
+    st.markdown("""
+    <div style="border-left:3px solid #FF4B4B; padding-left:15px;">
+        <h5>⚙️ Le Moteur d'Action (Inspiré du "Working Genius" de P. Lencioni)</h5>
+        <small>Quelle étape du travail vous donne de l'énergie (vs vous épuise) ?</small>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col_len_desc, col_len_sel = st.columns([1.5, 1])
+    with col_len_desc:
+        st.markdown("""
+        * **✨ Wonder/Invention (L'Idéateur) :** J'aime le début, brainstormer, inventer. Je déteste finir/polir.
+        * **🔥 Galvanizing (L'Activateur) :** J'aime motiver, lancer la machine, organiser le chaos.
+        * **🏗️ Tenacity (Le Finisseur) :** J'aime l'exécution, cocher les cases, aller au bout des choses. Je déteste le flou.
+        """)
+    with col_len_sel:
+        work_genius = st.radio("Votre zone de génie :", ["✨ Idéateur (Début)", "🔥 Activateur (Milieu)", "🏗️ Finisseur (Fin)"], label_visibility="collapsed")
 
     st.markdown("---")
     st.write("#### 3. La Mission")
@@ -284,29 +320,27 @@ with st.form("psycho_form"):
     
     submitted = st.form_submit_button("🚀 LANCER L'ANALYSE NEURO-CROSS", type="primary", use_container_width=True)
 
-# --- LOGIQUE ---
+# --- LOGIQUE MISE À JOUR ---
 if submitted:
-    # Logique intelligente : Si l'utilisateur a rempli l'onglet 1 (scores > 0), on prend ça. Sinon on prend les sliders.
+    # ... (Code précédent pour les scores OCEAN) ...
+    # (Copie le bloc logique OCEAN précédent ici)
     if o_score + c_score + e_score > 0:
-        # L'utilisateur a utilisé l'onglet 1
         final_scores = {"Ouverture": o_score, "Conscience": c_score, "Extraversion": e_score, "Agréabilité": a_score, "Névrosisme": n_score}
     else:
-        # L'utilisateur a utilisé l'onglet 2 (ou rien touché)
         final_scores = {"Ouverture": o_est, "Conscience": c_est, "Extraversion": e_est, "Agréabilité": a_est, "Névrosisme": n_est}
 
     if not mission:
         st.warning("Donne-moi au moins une tâche !")
     else:
-        with st.spinner("Croisement des vecteurs OCEAN & Habitudes..."):
+        with st.spinner("Croisement des vecteurs OCEAN x Rubin x Breus..."):
             
-            # Inputs complets pour le backend
+            # NOUVEAUX INPUTS POUR LE BACKEND
             inputs = {
                 "scores": final_scores,
                 "work_style": {
-                    "focus": focus_span,
-                    "deadline": deadline_react,
-                    "chrono": chronotype,
-                    "env": environment
+                    "chronotype": chronotype, # Ex: "🦁 Lion"
+                    "tendency": tendency,     # Ex: "🧨 Rebel"
+                    "genius": work_genius     # Ex: "✨ Idéateur"
                 },
                 "mission": mission
             }

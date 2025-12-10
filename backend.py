@@ -27,32 +27,33 @@ def parse_schedule(inputs):
     # --- MODE SIMULATION ---
     if DEBUG_MODE:
         time.sleep(1.5)
-        # On récupère les scores OCEAN passés par l'app
-        scores = inputs.get("scores", {})
-        
-        # Simulation d'un archétype basé sur les habitudes
+        # Récupération des données riches
         work_style = inputs.get("work_style", {})
-        focus = work_style.get("focus", "Standard")
+        animal = work_style.get("chronotype", "Ours").split(" ")[1] # On garde juste "Lion"
+        profil_rubin = work_style.get("tendency", "Questioner").split(" ")[1] # On garde juste "Questioner"
         
-        archetype_name = "Stratège"
-        if "Hyperfocus" in focus: archetype_name = "Visionnaire Obsessif"
-        elif "TDAH" in focus: archetype_name = "Explorateur Chaotique"
+        # Logique de simulation simple pour le titre
+        archetype_name = f"{animal} {profil_rubin}"
         
         return json.dumps({
-            "rarity": "Profil Hybride Rare",
-            "archetype": archetype_name,
-            "superpower": "Flux Cognitif Rapide",
-            "kryptonite": "Ennui & Routine",
-            "quote": "Votre cerveau est une Formule 1, ne le conduisez pas comme une Twingo.",
+            "rarity": "Profil Neuro-Cross Rare",
+            "archetype": archetype_name, # Ex: "Lion Rebel"
+            "superpower": "Démarrage Explosif",
+            "kryptonite": "Contraintes externes",
+            "quote": "Votre énergie est nucléaire, ne la gâchez pas sur des tâches administratives le matin.",
             "planning": [
-                { "titre": "Mise en route (Douceur)", "start_iso": "2025-12-11T09:00:00", "end_iso": "2025-12-11T09:30:00", "categorie": "Routine", "description": "Pas de pression." },
-                { "titre": "Deep Work : Projet Prioritaire", "start_iso": "2025-12-11T09:30:00", "end_iso": "2025-12-11T12:30:00", "categorie": "Travail", "description": "Mode avion activé." },
-                { "titre": "Déjeuner", "start_iso": "2025-12-11T12:30:00", "end_iso": "2025-12-11T13:30:00", "categorie": "Santé", "description": "Pause." }
+                { "titre": "Deep Work (Pic Cortisol)", "start_iso": "2025-12-11T08:00:00", "end_iso": "2025-12-11T11:00:00", "categorie": "Travail", "description": "Zone de génie activée." },
+                { "titre": "Déjeuner", "start_iso": "2025-12-11T12:00:00", "end_iso": "2025-12-11T13:00:00", "categorie": "Santé", "description": "Pause." }
+            ],
+            # On ajoute des prompts secrets plus crédibles
+            "secret_prompts": [
+                f"Applying '{animal}' chronotype: Shift peak cognitive load to biologically optimal window.",
+                f"Applying '{profil_rubin}' framework: Rephrase all tasks as personal challenges rather than obligations.",
+                "Algorithm: Neuro-Cross V6.1 Optimized."
             ]
         })
 
-    # --- MODE RÉEL (A ACTIVER PLUS TARD) ---
-    # Ici le prompt devra combiner inputs['scores'] et inputs['work_style']
+    # --- MODE RÉEL ---
     return json.dumps({"error": "Mode réel désactivé"})
 
 def generate_ics_file(json_data):
