@@ -131,7 +131,19 @@ st.caption("Remplis ces jauges. L'IA va sélectionner les 'Secret Prompts' adapt
 
 
 with st.form("psycho_form"):
-    
+    with st.expander("📖 Théorie : Comment l'IA structure votre temps (Modèle OCEAN)"):
+            st.markdown("""
+            **Le principe : L'Isomorphisme Cognitif**
+            Un agenda n'est efficace que s'il imite la structure naturelle de vos pensées. Nous utilisons principalement deux vecteurs pour sculpter le temps :
+            
+            1.  **L'Axe de la Conscience (C) : La Rigidité Structurelle**
+                * **Si C > 75 (L'Architecte) :** Votre cerveau a besoin de prévisibilité. L'IA génère des blocs longs (90min), séquentiels et immuables. L'échec vient souvent d'un manque de planification.
+                * **Si C < 30 (Le Chaos Pilot) :** Votre cerveau fonctionne par "sauts" d'intérêt. L'IA fragmente le temps en *Sprints* (25-45min) et varie les types de tâches pour maintenir la dopamine. L'échec vient de l'ennui et de la routine.
+            
+            2.  **L'Axe du Névrosisme (N) : La Gestion de la Charge**
+                * **Si N > 70 (Sentinelle) :** Le stress vous coûte cher en énergie. L'IA insère des "Zones Tampon" (Buffer) de 15min entre les tâches pour éviter la surchauffe cognitive.
+                * **Si N < 30 (Stoïque) :** Vous tolérez la pression. L'IA peut "tasser" les tâches (Time-Blocking dense) pour maximiser le rendement pur.
+            """)
     # === ONGLETS OCEAN ===
     tab1, tab2 = st.tabs(["📂 J'ai déjà mes scores (Expert)", "🔍 Je ne sais pas (Estimation)"])
     
@@ -391,6 +403,21 @@ if submitted:
 
             # --- ONGLET 2 : LE BIO-RYTHME ---
             with res_tab2:
+                with st.expander("📖 Théorie : La Chronobiologie (Loi de Breus)"):
+            st.markdown("""
+            **Le principe : L'Alignement Circadien**
+            Votre performance ne dépend pas de votre volonté, mais de votre taux de Cortisol (hormone de l'éveil) et de Mélatonine (hormone du sommeil). Lutter contre ce pic est métaboliquement coûteux.
+            
+            **Les 4 Chronotypes (Disjonction des cas) :**
+            * 🦁 **Le Lion (Matin - 15% pop) :** Pic de cortisol très tôt (6h-10h).
+                * *Stratégie :* Le "Deep Work" analytique doit être fini avant midi. L'après-midi est réservé à l'exécution bête.
+            * 🐻 **L'Ours (Solaire - 55% pop) :** Suit le cycle du soleil. Montée progressive, pic stable (10h-14h), chute vers 15h.
+                * *Stratégie :* Planning classique. La sieste éclair ou la marche de 15h est cruciale pour relancer la machine.
+            * 🐺 **Le Loup (Soir - 15% pop) :** Inertie du sommeil le matin (Cortisol retardé). Pic de créativité et d'éveil le soir (17h-Minuit).
+                * *Stratégie :* Ne jamais forcer le travail intellectuel avant 11h. Utiliser la nuit pour les tâches complexes.
+            * 🐬 **Le Dauphin (Irrégulier - 10% pop) :** Sommeil fragmenté, métabolisme nerveux. Pas de pic prévisible.
+                * *Stratégie :* Fonctionner par opportunisme (quand l'énergie est là, on fonce) et par micro-tâches pour ne pas angoisser le système.
+            """)
                 st.markdown("#### 🌊 Courbe d'Énergie Circadienne")
                 # 2. Le Blabla Bio (NOUVEAU)
                 st.info(f"🧬 **Analyse Chronobiologique :** {data.get('analysis_bio', 'Calcul...')}")
@@ -411,6 +438,23 @@ if submitted:
 
             # --- ONGLET 3 : LA MATRICE ---
             with res_tab3:
+            with st.expander("📖 Théorie : L'Économie de la Batterie Sociale"):
+            st.markdown("""
+            **Le principe : Le Coût Métabolique de l'Interaction**
+            Chaque tâche a un prix, non pas en temps, mais en "points d'énergie". Ce prix varie radicalement selon votre score d'Extraversion (E).
+            
+            **La Matrice de Compatibilité :**
+            * **Si Extraversion < 40 (Introverti) :**
+                * *Interaction Sociale (Réunions, Appels) :* **DRAIN (Coût Élevé)**. Votre cerveau sur-analyse les signaux sociaux, ce qui vide la batterie.
+                * *Isolement (Deep Work) :* **RECHARGE (Gain)**. Le calme permet à votre système nerveux de se réguler.
+            * **Si Extraversion > 60 (Extraverti) :**
+                * *Interaction Sociale :* **RECHARGE (Gain)**. L'échange d'idées stimule votre production de dopamine. Vous "pensez en parlant".
+                * *Isolement prolongé :* **DRAIN (Coût)**. Le silence statique fait chuter votre niveau d'éveil (sous-stimulation).
+            
+            **Lecture du Graphique :**
+            * 🟥 **Rouge (Gauche) :** Tâches qui vident votre batterie. À limiter ou à encadrer par des pauses.
+            * 🟩 **Vert (Droite) :** Tâches qui vous rechargent. À utiliser comme récompense après un effort difficile.
+            """)
                 st.markdown("#### 🔋 Coût Énergétique des Tâches")
                 # 3. Le Blabla Social (NOUVEAU)
                 st.info(f"🔋 **Analyse de la Batterie Interne :** {data.get('analysis_social', 'Calcul...')}")
