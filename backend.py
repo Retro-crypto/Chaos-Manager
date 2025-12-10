@@ -5,15 +5,13 @@ from ics import Calendar, Event
 import json
 import re
 import ast
-import time # Pour simuler l'attente
+import time
 from dotenv import load_dotenv
 
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# --- INTERRUPTEUR MAGIQUE ---
-# Mets True pour développer sans payer/attendre (Mode Faux Cerveau)
-# Mets False pour la vraie IA (Mode Production)
+# --- RESTE EN TRUE POUR CODER L'INTERFACE GRATUITEMENT ---
 DEBUG_MODE = True 
 
 def get_current_context():
@@ -36,49 +34,62 @@ def clean_and_parse_json(text):
 
 def parse_schedule(inputs):
     
-    # --- MODE SIMULATION (GRATUIT & ILLIMITÉ) ---
+    # --- MODE SIMULATION (POUR LE DEV UI) ---
     if DEBUG_MODE:
-        time.sleep(2) # On fait semblant que l'IA réfléchit
-        # On renvoie une réponse parfaite codée en dur
+        time.sleep(1.5)
+        # On simule une réponse basée sur les sliders (Approximation)
+        # C'est juste pour tester l'affichage "Carte RPG"
         fake_response = {
             "scores": {
-                "Focus": 95,
-                "Discipline": 15,
+                "Focus": 85,
+                "Discipline": inputs.get('discipline', 30), # On reprend la valeur du slider
                 "Résilience": 40,
                 "Structure": 20,
                 "Impulsion": 90
             },
-            "archetype": "Visionnaire Impulsif (Simulé)",
-            "diagnosis": "MODE DEBUG : Le sujet présente un profil créatif typique. Forte capacité d'hyperfocus nocturne (Focus 95) mais incapacité totale à gérer l'administratif (Structure 20). Le risque de burnout est élevé par cycles.",
-            "hack": "Time-Boxing inversé : On ne planifie que les temps de repos, le travail remplit le vide.",
+            "archetype": "Berserker Nocturne",
+            "rarity": "Top 4% (Profil Rare)",
+            "superpower": "Hyperfocus en urgence",
+            "kryptonite": "L'ennui administratif",
+            "quote": "Tu es capable de déplacer des montagnes en une nuit, mais tu trébuches sur un caillou le lendemain.",
             "planning": [
-                { "titre": "Rendu Data Science (Sprint)", "start_iso": "2025-12-09T22:00:00", "end_iso": "2025-12-10T04:00:00", "categorie": "Deep Work", "description": "Sprint nocturne sans interruption." },
-                { "titre": "Salle de Sport (Obligatoire)", "start_iso": "2025-12-10T19:00:00", "end_iso": "2025-12-10T20:30:00", "categorie": "Santé", "description": "Sortir de la grotte." },
-                { "titre": "Appel Impôts (Douleur)", "start_iso": "2025-12-12T09:00:00", "end_iso": "2025-12-12T09:30:00", "categorie": "Admin", "description": "Faire ça en premier pour s'en débarrasser." }
+                { "titre": "Sprint Deep Work", "start_iso": "2025-12-10T22:00:00", "end_iso": "2025-12-10T23:30:00", "categorie": "Travail", "description": "Mode guerre." },
+                { "titre": "Repos Forcé", "start_iso": "2025-12-11T10:00:00", "end_iso": "2025-12-11T11:00:00", "categorie": "Santé", "description": "Récupération." }
             ]
         }
         return json.dumps(fake_response)
 
     # --- MODE RÉEL (IA) ---
     system_instruction = f"""
-    Tu es un Expert en Neuro-Productivité.
-    ANAMNÈSE :
-    1. ÉCHEC : {inputs.get('echec')}
-    2. ÉNERGIE : {inputs.get('energie')}
-    3. MISSION : {inputs.get('mission')}
+    Tu es un Profiler Psychologique Expert.
     
-    TA MISSION : Diagnostic Big Five (0-100), Archétype, Planning JSON.
+    DONNÉES PATIENT :
+    - Énergie : {inputs.get('energy')}
+    - Chronotype : {inputs.get('chronotype')}
+    - Discipline (Auto-évaluation /100) : {inputs.get('discipline')}
+    - Focus Type : {inputs.get('focus')}
+    - Réaction Stress : {inputs.get('stress')}
+    - Peur Secrète : {inputs.get('fear')}
+    - Mission : {inputs.get('mission')}
+    
+    TA MISSION :
+    1. Calcule les Scores Big Five Productivité (0-100).
+    2. Crée un PROFIL RPG (Archétype, Rareté, Pouvoir, Faiblesse).
+    3. Génère le planning.
+    
     FORMAT JSON STRICT :
     {{
-        "scores": {{ "Focus": 0, "Discipline": 0, "Résilience": 0, "Structure": 0, "Impulsion": 0 }},
-        "archetype": "...",
-        "diagnosis": "...",
-        "hack": "...",
-        "planning": [ {{ "titre": "...", "start_iso": "...", "end_iso": "...", "categorie": "..." }} ]
+        "scores": {{ "Focus": X, "Discipline": X, "Résilience": X, "Structure": X, "Impulsion": X }},
+        "archetype": "Titre Épique (ex: Architecte de Cristal)",
+        "rarity": "Top X% (ex: Top 2% Population)",
+        "superpower": "Son atout majeur",
+        "kryptonite": "Sa faiblesse fatale",
+        "quote": "Une phrase choc qui résume sa vie.",
+        "planning": [ ... ]
     }}
     """
     
-    # On utilise le modèle Flash GRATUIT quand on n'est pas en Debug
+    # On utilise le modèle Flash GRATUIT (si quota dispo)
     model = genai.GenerativeModel('gemini-2.0-flash') 
     
     try:
@@ -89,6 +100,7 @@ def parse_schedule(inputs):
         return json.dumps({"error": str(e)})
 
 def generate_ics_file(json_data):
+    # (Même code qu'avant, pas de changement ici)
     c = Calendar()
     try:
         if isinstance(json_data, str):
