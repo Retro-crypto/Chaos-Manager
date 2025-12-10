@@ -357,45 +357,47 @@ if submitted:
             
             # --- ONGLET 1 : L'AFFICHAGE CLASSIQUE ---
             with res_tab1:
-                # ZONE THEORIE (Visible directement)
-                    st.markdown("""
-                    **Le Postulat : La Friction Cognitive**
-                    L'échec d'un planning ne vient pas d'un manque de volonté, mais d'une incompatibilité entre la structure du temps (l'agenda) et la structure de la pensée (le cerveau).
-                    
-                    ---
-                    
-                    ### 1. L'Axe de la Structure (Conscience)
-                    *Comment votre cerveau gère l'entropie et l'effort dans la durée.*
-                    
-                    * **🔼 Si C > 75 (L'Architecte / Le Séquentiel) :**
-                        * *Fonctionnement :* Votre performance repose sur la continuité. Vous détestez le changement de contexte ("Task Switching"). Une interruption de 2 min peut vous coûter 20 min de reconcentration.
-                        * *Stratégie IA :* **Deep Work Séquentiel.** Le planning crée des blocs massifs (90-120 min) et sanctuarisés. L'objectif est la fluidité linéaire.
-                    
-                    * **🔽 Si C < 30 (Le Chaos Pilot / Le Divergent) :**
-                        * *Fonctionnement :* Votre cerveau est un moteur à combustion rapide. Il fonctionne à la "Nouveauté" et à l'Urgence. La routine linéaire génère de l'ennui, qui se transforme immédiatement en procrastination.
-                        * *Stratégie IA :* **Gamification & Sprints.** Le temps est fragmenté en sessions courtes (25-45 min). On alterne les types de tâches (Créatif -> Admin -> Créatif) pour "tromper" le cerveau et maintenir le niveau de dopamine.
-                        
-                    * **⏺️ Si C entre 30 et 75 (Le Flex-Master) :**
-                        * *Stratégie IA :* **Hybridation.** Une base structurée pour le matin (pour assurer l'avancement), mais des plages de "chaos contrôlé" l'après-midi pour laisser place à l'improvisation.
-
-                    ---
-
-                    ### 2. L'Axe de la Charge Mentale (Névrosisme)
-                    *Le coût métabolique de l'incertitude et du risque.*
-
-                    * **🔼 Si N > 70 (La Sentinelle / Hyper-Réactif) :**
-                        * *Fonctionnement :* Votre système de détection des menaces est très sensible. Un retard ou un imprévu déclenche une réponse cortisol (stress) disproportionnée qui paralyse l'action.
-                        * *Stratégie IA :* **Sécurité & Tampons.** L'algorithme insère des "Airbags Temporels" (buffers de 15-20 min) entre les tâches. On évite la surcharge cognitive en ne montrant que la prochaine étape immédiate.
-                    
-                    * **🔽 Si N < 30 (Le Stoïque / Le Roc) :**
-                        * *Fonctionnement :* Vous avez une haute tolérance à la pression. Les deadlines serrées agissent comme un stimulant plutôt qu'un frein. Vous récupérez vite d'un échec.
-                        * *Stratégie IA :* **Densité Maximale.** Le planning est compacté ("Time-Boxing" agressif). On supprime les marges de sécurité pour maximiser le rendement pur (Yield).
-                        
-                    * **⏺️ Si N entre 30 et 70 (Le Régulateur) :**
-                        * *Stratégie IA :* **Standard.** Gestion classique des pauses (5-10 min toutes les heures) pour maintenir une homéostasie mentale stable sur la journée.
-                    """)
+                # ZONE THEORIE (Directement visible, sans expander)
+                st.markdown("""
+                #### 📖 Théorie Avancée : L'Algorithme de Structuration Temporelle
                 
-                # 1. Le Blabla d'analyse auto
+                **Le Postulat : La Friction Cognitive**
+                L'échec d'un planning ne vient pas d'un manque de volonté, mais d'une incompatibilité entre la structure du temps (l'agenda) et la structure de la pensée (le cerveau).
+                
+                ---
+                
+                ### 1. L'Axe de la Structure (Conscience)
+                *Comment votre cerveau gère l'entropie et l'effort dans la durée.*
+                
+                * **🔼 Si C > 75 (L'Architecte / Le Séquentiel) :**
+                    * *Fonctionnement :* Votre performance repose sur la continuité. Vous détestez le changement de contexte ("Task Switching"). Une interruption de 2 min peut vous coûter 20 min de reconcentration.
+                    * *Stratégie IA :* **Deep Work Séquentiel.** Le planning crée des blocs massifs (90-120 min) et sanctuarisés. L'objectif est la fluidité linéaire.
+                
+                * **🔽 Si C < 30 (Le Chaos Pilot / Le Divergent) :**
+                    * *Fonctionnement :* Votre cerveau est un moteur à combustion rapide. Il fonctionne à la "Nouveauté" et à l'Urgence. La routine linéaire génère de l'ennui, qui se transforme immédiatement en procrastination.
+                    * *Stratégie IA :* **Gamification & Sprints.** Le temps est fragmenté en sessions courtes (25-45 min). On alterne les types de tâches (Créatif -> Admin -> Créatif) pour "tromper" le cerveau et maintenir le niveau de dopamine.
+                    
+                * **⏺️ Si C entre 30 et 75 (Le Flex-Master) :**
+                    * *Stratégie IA :* **Hybridation.** Une base structurée pour le matin (pour assurer l'avancement), mais des plages de "chaos contrôlé" l'après-midi pour laisser place à l'improvisation.
+
+                ---
+
+                ### 2. L'Axe de la Charge Mentale (Névrosisme)
+                *Le coût métabolique de l'incertitude et du risque.*
+
+                * **🔼 Si N > 70 (La Sentinelle / Hyper-Réactif) :**
+                    * *Fonctionnement :* Votre système de détection des menaces est très sensible. Un retard ou un imprévu déclenche une réponse cortisol (stress) disproportionnée qui paralyse l'action.
+                    * *Stratégie IA :* **Sécurité & Tampons.** L'algorithme insère des "Airbags Temporels" (buffers de 15-20 min) entre les tâches. On évite la surcharge cognitive en ne montrant que la prochaine étape immédiate.
+                
+                * **🔽 Si N < 30 (Le Stoïque / Le Roc) :**
+                    * *Fonctionnement :* Vous avez une haute tolérance à la pression. Les deadlines serrées agissent comme un stimulant plutôt qu'un frein. Vous récupérez vite d'un échec.
+                    * *Stratégie IA :* **Densité Maximale.** Le planning est compacté ("Time-Boxing" agressif). On supprime les marges de sécurité pour maximiser le rendement pur (Yield).
+                    
+                * **⏺️ Si N entre 30 et 70 (Le Régulateur) :**
+                    * *Stratégie IA :* **Standard.** Gestion classique des pauses (5-10 min toutes les heures) pour maintenir une homéostasie mentale stable sur la journée.
+                """)
+                
+                # Le st.info est aligné exactement comme le st.markdown au-dessus
                 st.info(f"💡 **Stratégie Cognitive :** {data.get('analysis_global', 'Analyse en cours...')}")
                 
                 col_card, col_radar = st.columns([1, 1])
