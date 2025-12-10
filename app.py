@@ -148,18 +148,48 @@ with st.form("psycho_form"):
         a_score = c4.number_input("Agréabilité", 0, 100, 0, key="a_in")
         n_score = c5.number_input("Névrosisme", 0, 100, 0, key="n_in")
 
-    # Onglet 2 : Sliders (Pour les autres)
+    # Onglet 2 : Sliders (Pour les autres) - VERSION EXPERTE & DÉTAILLÉE
     with tab2:
-        st.write("Estimez-vous honnêtement sur ces échelles :")
-        col_est1, col_est2 = st.columns(2)
-        with col_est1:
-            o_est = st.slider("Ouverture (Besoin de nouveauté / Curiosité)", 0, 100, 50)
-            c_est = st.slider("Conscience (Discipline / Organisation)", 0, 100, 50)
-            e_est = st.slider("Extraversion (Besoin social / Énergie externe)", 0, 100, 50)
-        with col_est2:
-            a_est = st.slider("Agréabilité (Empathie / Tendance à dire oui)", 0, 100, 50)
-            n_est = st.slider("Névrosisme (Sensibilité au stress / Anxiété)", 0, 100, 50)
+        st.markdown("""
+        <div style="background-color: #262730; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; border: 1px solid #444;">
+            ℹ️ <b>Calibration Cognitive :</b> Positionnez le curseur selon votre tendance naturelle au travail. 
+            Il n'y a pas de "bon" score. Un score bas en Conscience favorise la créativité, un score haut favorise l'exécution.
+        </div>
+        """, unsafe_allow_html=True)
 
+        # --- O : OUVERTURE ---
+        st.markdown("#### 🌊 1. Facteur O : La Nouveauté (Ouverture)")
+        st.caption("🧠 *Impact Travail : Capacité à tolérer la routine vs Besoin d'innovation.*")
+        st.markdown("**0% (Pragmatique)** : J'aime les processus clairs, la répétition, l'efficacité éprouvée.<br>**100% (Explorateur)** : Je m'ennuie vite, j'ai besoin de théoriser et de changer de méthode souvent.", unsafe_allow_html=True)
+        o_est = st.slider("Votre positionnement :", 0, 100, 50, key="slider_o", label_visibility="collapsed")
+        st.markdown("---")
+
+        # --- C : CONSCIENCE ---
+        st.markdown("#### 📐 2. Facteur C : La Structure (Conscience)")
+        st.caption("🧠 *Impact Travail : Gestion des délais et finition des tâches.*")
+        st.markdown("**0% (Spontané)** : Je travaille par "bursts" d'énergie, je suis flexible mais désordonné. Je démarre beaucoup de choses.<br>**100% (Architecte)** : Je planifie tout à l'avance, je finis toujours ce que je commence, je suis mal à l'aise sans plan.", unsafe_allow_html=True)
+        c_est = st.slider("Votre positionnement :", 0, 100, 50, key="slider_c", label_visibility="collapsed")
+        st.markdown("---")
+
+        # --- E : EXTRAVERSION ---
+        st.markdown("#### ⚡ 3. Facteur E : La Stimulation (Extraversion)")
+        st.caption("🧠 *Impact Travail : Gestion de l'environnement et des réunions.*")
+        st.markdown("**0% (Deep Worker)** : Les interactions me drainent. Je suis ultra-efficace seul dans le silence.<br>**100% (Connecteur)** : Je pense en parlant. L'isolement m'épuise, j'ai besoin du buzz de l'équipe pour avancer.", unsafe_allow_html=True)
+        e_est = st.slider("Votre positionnement :", 0, 100, 50, key="slider_e", label_visibility="collapsed")
+        st.markdown("---")
+
+        # --- A : AGRÉABILITÉ ---
+        st.markdown("#### 🤝 4. Facteur A : La Coopération (Agréabilité)")
+        st.caption("🧠 *Impact Travail : Négociation et capacité à dire Non.*")
+        st.markdown("**0% (Challenger)** : Je priorise mes objectifs, je sais dire non fermement, quitte à être perçu comme froid.<br>**100% (Diplomate)** : Je cherche l'harmonie, j'ai du mal à refuser une demande d'aide, je fais passer l'équipe avant moi.", unsafe_allow_html=True)
+        a_est = st.slider("Votre positionnement :", 0, 100, 50, key="slider_a", label_visibility="collapsed")
+        st.markdown("---")
+
+        # --- N : NÉVROSISME ---
+        st.markdown("#### 🌪️ 5. Facteur N : La Réactivité (Névrosisme)")
+        st.caption("🧠 *Impact Travail : Gestion du stress et perfectionnisme.*")
+        st.markdown("**0% (Roc)** : Le stress glisse sur moi. Je reste calme en crise, parfois détaché.<br>**100% (Sentinelle)** : Je suis hyper-vigilant aux risques. Je repère les erreurs, mais le stress me paralyse ou me rend perfectionniste.", unsafe_allow_html=True)
+        n_est = st.slider("Votre positionnement :", 0, 100, 50, key="slider_n", label_visibility="collapsed")
     st.markdown("---")
     st.write("#### 2. Calibration du 'Software' (Méthodes de Travail)")
     st.caption("Comment votre cerveau fonctionne-t-il *en situation* ?")
