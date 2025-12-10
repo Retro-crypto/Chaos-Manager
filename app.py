@@ -342,8 +342,12 @@ if submitted:
             # Création des 3 onglets de visualisation
             res_tab1, res_tab2, res_tab3 = st.tabs(["📅 Synthèse & Planning", "⚡ Bio-Rythme (New)", "🧬 Matrice Énergie (New)"])
             
-            # --- ONGLET 1 : L'AFFICHAGE CLASSIQUE (Card + Radar + Planning) ---
+            
+            # --- ONGLET 1 : L'AFFICHAGE CLASSIQUE ---
             with res_tab1:
+                # 1. Le Blabla d'intro (NOUVEAU)
+                st.info(f"💡 **Stratégie Cognitive :** {data.get('analysis_global', 'Analyse en cours...')}")
+                
                 col_card, col_radar = st.columns([1, 1])
                 
                 with col_card:
@@ -363,93 +367,75 @@ if submitted:
                     """, unsafe_allow_html=True)
                     
                 with col_radar:
-                    # 1. On prépare les données
+                    # Ton code Radar (Corrigé)
                     df_scores = pd.DataFrame(dict(r=list(final_scores.values()), theta=list(final_scores.keys())))
-                    
-                    # 2. On crée la figure de base
                     fig = px.line_polar(df_scores, r='r', theta='theta', line_close=True, range_r=[0,100])
                     fig.update_traces(fill='toself', line_color='#FF4B4B')
-                    
-                    # 3. On applique le correctif visuel (Marges + Police)
                     fig.update_layout(
                         paper_bgcolor="rgba(0,0,0,0)", 
                         plot_bgcolor="rgba(0,0,0,0)", 
-                        font=dict(color="white", size=10), # Police réduite pour éviter la coupe
-                        margin=dict(l=40, r=40, t=30, b=30), # Marges forcées
-                        polar=dict(
-                            radialaxis=dict(visible=True, range=[0, 100], color="#555"),
-                            angularaxis=dict(color="white")
-                        )
+                        font=dict(color="white", size=10), 
+                        margin=dict(l=40, r=40, t=30, b=30),
+                        polar=dict(radialaxis=dict(visible=True, range=[0, 100], color="#555"), angularaxis=dict(color="white"))
                     )
-                    
-                    # 4. ENFIN, on affiche le graphique
                     st.plotly_chart(fig, use_container_width=True)
-                # Aperçu Planning (Tableau)
+
                 st.subheader("📅 Aperçu Stratégique")
                 planning = data.get("planning", [])
                 if len(planning) > 0:
                     df_free = pd.DataFrame(planning)
-                    # On vérifie les colonnes pour éviter un crash si le JSON est incomplet
                     cols_to_show = [c for c in ["titre", "start_iso", "categorie"] if c in df_free.columns]
                     st.dataframe(df_free[cols_to_show], hide_index=True, use_container_width=True)
                 else:
                     st.info("Aucun planning généré pour l'instant.")
 
-            # --- ONGLET 2 : LE BIO-RYTHME (NOUVEAU) ---
+            # --- ONGLET 2 : LE BIO-RYTHME ---
             with res_tab2:
                 st.markdown("#### 🌊 Courbe d'Énergie Circadienne")
-                st.caption(f"Simulation de vos niveaux de cortisol basés sur le chronotype : **{chronotype}**")
+                # 2. Le Blabla Bio (NOUVEAU)
+                st.info(f"🧬 **Analyse Chronobiologique :** {data.get('analysis_bio', 'Calcul...')}")
                 
-                # On récupère les data générées par le backend V7
                 energy_data = data.get("chart_energy", [])
-                
                 if energy_data:
                     df_energy = pd.DataFrame(energy_data)
                     fig_energy = px.line(df_energy, x="heure", y="niveau", markers=True, line_shape="spline")
                     fig_energy.update_traces(line_color='#00ff00', line_width=3)
                     fig_energy.add_hline(y=80, line_dash="dot", line_color="white", annotation_text="Zone Hyperfocus")
                     fig_energy.update_layout(
-                        xaxis_title="Heure (06h - 23h)", 
-                        yaxis_title="Énergie Cognitive",
-                        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="#161924",
-                        font=dict(color="white")
+                        xaxis_title="Heure (06h - 23h)", yaxis_title="Énergie Cognitive",
+                        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="#161924", font=dict(color="white")
                     )
                     st.plotly_chart(fig_energy, use_container_width=True)
                 else:
-                    st.warning("⚠️ Données d'énergie non disponibles (Vérifiez que le Backend est bien en mode V7/Debug).")
+                    st.warning("⚠️ Données d'énergie non disponibles.")
 
-            # --- ONGLET 3 : LA MATRICE (CORRIGÉ) ---
+            # --- ONGLET 3 : LA MATRICE ---
             with res_tab3:
                 st.markdown("#### 🔋 Coût Énergétique des Tâches")
-                st.caption(f"Impact sur votre batterie sociale (Basé sur Extraversion : {final_scores['Extraversion']}%)")
+                # 3. Le Blabla Social (NOUVEAU)
+                st.info(f"🔋 **Analyse de la Batterie Interne :** {data.get('analysis_social', 'Calcul...')}")
                 
                 matrix_data = data.get("chart_matrix", [])
-                
                 if matrix_data:
                     df_matrix = pd.DataFrame(matrix_data)
-                    # Bar chart horizontal
                     fig_matrix = go.Figure(go.Bar(
                         x=df_matrix['impact'],
                         y=df_matrix['tache'],
                         orientation='h',
                         marker=dict(
                             color=df_matrix['impact'],
-                            colorscale='RdYlGn', # Rouge à Vert
-                            # midpoint=0  <-- C'ETAIT LUI LE COUPABLE (SUPPRIMÉ)
-                            line=dict(color='rgba(255, 255, 255, 0.3)', width=1) # Ajout bordure pour style
+                            colorscale='RdYlGn', 
+                            line=dict(color='rgba(255, 255, 255, 0.3)', width=1)
                         )
                     ))
                     fig_matrix.update_layout(
                         xaxis_title="Drain (-) vs Recharge (+)",
                         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                        font=dict(color="white"),
-                        margin=dict(l=10, r=10, t=30, b=30)
+                        font=dict(color="white"), margin=dict(l=10, r=10, t=30, b=30)
                     )
                     st.plotly_chart(fig_matrix, use_container_width=True)
                 else:
                     st.warning("⚠️ Données matrice non disponibles.")
-
-            # --- FIN DE LA GREFFE V7 ---
             
             # (Ici tu laisses ton Paywall 'locked-section' qui était déjà en bas)
             # --- PAYWALL ---
