@@ -16,33 +16,37 @@ st.markdown("""
         background-color: #1c202a; 
         border: 1px solid #00ff00; 
         color: #00ff00; 
-        padding: 5px 10px; 
-        border-radius: 5px; 
+        padding: 4px 8px; 
+        border-radius: 4px; 
         font-family: monospace; 
-        font-size: 12px;
+        font-size: 11px;
         display: inline-block;
         margin-bottom: 10px;
-        box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+        box-shadow: 0 0 8px rgba(0, 255, 0, 0.1);
     }
 
-    /* Boite Explication */
+    /* Boite Explication Scientifique */
     .concept-box {
-        background-color: #161924;
-        border-left: 4px solid #FF4B4B;
-        padding: 20px;
+        background-color: #13151b;
+        border-left: 3px solid #FF4B4B;
+        padding: 25px;
         border-radius: 0 10px 10px 0;
-        margin-bottom: 20px;
+        margin-bottom: 30px;
+        font-size: 15px;
+        line-height: 1.6;
     }
+    .science-term { color: #FF4B4B; font-weight: bold; }
     
-    /* Comparaison Profils */
+    /* Comparaison Profils (Plus compacte) */
     .profile-example {
-        background-color: #262730;
+        background-color: #21232b;
         padding: 15px;
         border-radius: 8px;
         text-align: center;
-        border: 1px solid #444;
+        border: 1px solid #333;
+        font-size: 13px; /* Police réduite */
     }
-    .versus { font-size: 20px; font-weight: bold; color: #FF4B4B; text-align: center; margin-top: 30px;}
+    .versus { font-size: 18px; font-weight: bold; color: #666; text-align: center; margin-top: 40px;}
     
     /* Reste du style */
     .rpg-card { background: linear-gradient(135deg, #2b3042 0%, #161924 100%); border: 1px solid #444; border-radius: 15px; padding: 20px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
@@ -55,76 +59,76 @@ st.markdown("""
 # --- SIDEBAR ---
 with st.sidebar:
     st.header("🧠 Chaos Manager")
-    st.caption("v5.0.1 (Experimental)")
+    st.caption("v5.1 (Stable)")
     st.markdown('<div class="tech-badge">⚡ CORE: GEMINI 3.0 PRO</div>', unsafe_allow_html=True)
     st.markdown('<div class="tech-badge">🔐 PROMPTS: PROPRIETARY</div>', unsafe_allow_html=True)
     st.markdown("---")
-    st.info("💡 **Pourquoi ça marche ?**\nNous n'utilisons pas des modèles génériques. Le système injecte des prompts psycho-adaptatifs basés sur vos scores OCEAN.")
+    st.info("💡 **Science du Prompting**\nChaque planning est généré par une injection de prompt unique, calculée selon vos vecteurs de personnalité OCEAN.")
 
 # --- HEADER & PÉDAGOGIE ---
 st.title("🧠 Chaos Manager : Expert Edition")
 st.markdown("### L'ingénierie IA au service de ton neuro-type.")
 
-# --- L'ARGUMENTAIRE PERCUTANT ---
-with st.expander("ℹ️ Pourquoi les agendas classiques échouent pour toi ?", expanded=True):
+# --- L'ARGUMENTAIRE SCIENTIFIQUE (Visible & Direct) ---
+st.markdown("""
+<div class="concept-box">
+    <b>Pourquoi les agendas classiques échouent pour 48% des gens ?</b><br><br>
+    Parce qu'ils imposent une structure unique à des cerveaux différents. 
+    Notre algorithme repose sur une approche scientifique double :
+    <br><br>
+    1. 🧬 <b>Le Modèle Big Five (OCEAN) :</b> Nous ne devinons pas qui vous êtes. Nous calibrons l'IA sur vos 5 traits de personnalité fondamentaux (Ouverture, Conscience, Extraversion, Agréabilité, Névrosisme).
+    <br><br>
+    2. 🤖 <b>Le "Psychometric Prompt Engineering" :</b> C'est notre innovation majeure. Contrairement à ChatGPT qui utilise un ton générique, notre système sélectionne dynamiquement des <i>System Instructions</i> secrètes. 
+    <br>
+    <i>Exemple : Si vous êtes détecté "Faible Discipline / Haute Impulsion", l'IA n'essaiera pas de vous faire lever à 5h du matin. Elle activera le protocole "Dopamine Sprint" pour maximiser votre hyperfocus.</i>
+</div>
+""", unsafe_allow_html=True)
+
+st.write("👀 **Visualisez l'impact du Prompting Adaptatif sur 2 profils opposés :**")
+
+# COLONNES COMPACTES
+c1, c2, c3 = st.columns([1, 0.15, 1])
+
+with c1:
     st.markdown("""
-    <div class="concept-box">
-        <b>La plupart des outils de productivité sont conçus pour un seul type de cerveau : le "Gestionnaire".</b><br>
-        Mais si tu es ici, c'est que ton cerveau fonctionne différemment.
-        <br><br>
-        Notre algorithme utilise le modèle scientifique des <b>Big Five (OCEAN)</b> combiné à l'architecture <b>Gemini 3 Pro</b> pour scanner ta personnalité et générer une stratégie temporelle unique.
+    <div class="profile-example">
+        <strong style="font-size:16px;">👤 Profil A : "Le Soldat"</strong><br>
+        <span style="color:#aaa;">(Haute Discipline, Basse Ouverture)</span>
+        <hr style="margin:10px 0; border-color:#444;">
+        <p style="color:#aaffaa; font-weight:bold;">✅ Stratégie IA générée :</p>
+        <ul style="text-align:left; padding-left:20px; margin-bottom:5px;">
+            <li>Planning linéaire (9h-18h)</li>
+            <li>Pauses fixes de 15 min</li>
+            <li>Objectif : Constance</li>
+        </ul>
+        <i style="color:#666;">-> L'IA agit comme un "Architecte".</i>
     </div>
     """, unsafe_allow_html=True)
     
-    st.write("👀 **Concrètement, ça change quoi ?** Regarde la différence de traitement pour une même journée :")
+with c2:
+    st.markdown('<div class="versus">VS</div>', unsafe_allow_html=True)
     
-    c1, c2, c3 = st.columns([1, 0.2, 1])
-    
-    with c1:
-        st.markdown("""
-        <div class="profile-example">
-            <h4>👤 Profil A : "Le Soldat"</h4>
-            <small>(Haute Discipline, Basse Ouverture)</small>
-            <hr>
-            <p style="color:#aaffaa;">✅ <b>Ce que l'IA génère :</b></p>
-            <ul style="text-align:left; font-size:14px;">
-                <li>08:00 - Routine précise</li>
-                <li>09:00 - Tâche A (1h)</li>
-                <li>10:00 - Tâche B (1h)</li>
-                <li><i>Structure rigide et rassurante.</i></li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-        
-    with c2:
-        st.markdown('<div class="versus">VS</div>', unsafe_allow_html=True)
-        
-    with c3:
-        st.markdown("""
-        <div class="profile-example">
-            <h4>👤 Profil B : "L'Artiste"</h4>
-            <small>(Haute Impulsion, Basse Discipline)</small>
-            <hr>
-            <p style="color:#ffaaaa;">✅ <b>Ce que l'IA génère :</b></p>
-            <ul style="text-align:left; font-size:14px;">
-                <li>09:00 - Bloc "Deep Work" (4h)</li>
-                <li>Objectif Unique : "Avancer"</li>
-                <li>Interdiction de couper.</li>
-                <li><i>Hyperfocus dopaminergique.</i></li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
+with c3:
+    st.markdown("""
+    <div class="profile-example">
+        <strong style="font-size:16px;">👤 Profil B : "L'Artiste"</strong><br>
+        <span style="color:#aaa;">(Haute Impulsion, Basse Discipline)</span>
+        <hr style="margin:10px 0; border-color:#444;">
+        <p style="color:#ffaaaa; font-weight:bold;">✅ Stratégie IA générée :</p>
+        <ul style="text-align:left; padding-left:20px; margin-bottom:5px;">
+            <li>Blocs "Deep Work" de 4h</li>
+            <li>Zéro contrainte le matin</li>
+            <li>Objectif : Intensité</li>
+        </ul>
+        <i style="color:#666;">-> L'IA agit comme un "Coach de Sprint".</i>
+    </div>
+    """, unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown("#### 1. Calibration Neuro-Psychologique")
-st.caption("Remplis ces jauges honnêtement. L'IA va sélectionner les 'Secret Prompts' adaptés à tes scores.")
+st.caption("Remplis ces jauges. L'IA va sélectionner les 'Secret Prompts' adaptés à tes scores.")
 
-
-
-# --- FORMULAIRE D'AUTO-CALIBRATION (Honnête) ---
-st.markdown("#### 1. Auto-Calibration Psychométrique")
-st.caption("Ce n'est pas un diagnostic clinique, mais une calibration basée sur ton ressenti actuel.")
-
+# ... LE RESTE DU CODE (FORMULAIRE) ...
 with st.form("psycho_form"):
     col1, col2 = st.columns(2)
     with col1:
