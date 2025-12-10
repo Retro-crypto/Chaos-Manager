@@ -358,8 +358,6 @@ if submitted:
             # --- ONGLET 1 : L'AFFICHAGE CLASSIQUE ---
             with res_tab1:
                 # ZONE THEORIE (Visible directement)
-                st.expander("####📖 Théorie Avancée : L'Algorithme de Structuration Temporelle"):
-                # On utilise un expander pour ne pas noyer l'utilisateur, car le texte est dense
                     st.markdown("""
                     **Le Postulat : La Friction Cognitive**
                     L'échec d'un planning ne vient pas d'un manque de volonté, mais d'une incompatibilité entre la structure du temps (l'agenda) et la structure de la pensée (le cerveau).
