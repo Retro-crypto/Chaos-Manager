@@ -128,6 +128,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 st.markdown("#### 1. Calibration Neuro-Psychologique")
 st.caption("Remplis ces jauges. L'IA va sélectionner les 'Secret Prompts' adaptés à tes scores.")
 
+
 # ... LE RESTE DU CODE (FORMULAIRE) ...
 with st.form("psycho_form"):
     col1, col2 = st.columns(2)

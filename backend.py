@@ -11,57 +11,51 @@ from dotenv import load_dotenv
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-DEBUG_MODE = True # Toujours en mode gratuit pour le dev
+DEBUG_MODE = True 
 
 def clean_and_parse_json(text):
     match = re.search(r"\{.*\}", text, re.DOTALL)
-    if match:
-        cleaned_text = match.group(0)
-    else:
-        return {"error": "Pas de JSON trouvé"}
-    try:
-        return json.loads(cleaned_text)
+    if match: cleaned_text = match.group(0)
+    else: return {"error": "Pas de JSON trouvé"}
+    try: return json.loads(cleaned_text)
     except:
-        try:
-            return ast.literal_eval(cleaned_text)
-        except:
-            return {"error": "Échec lecture JSON"}
+        try: return ast.literal_eval(cleaned_text)
+        except: return {"error": "Échec lecture JSON"}
 
 def parse_schedule(inputs):
     
     # --- MODE SIMULATION ---
     if DEBUG_MODE:
         time.sleep(1.5)
+        # On récupère les scores OCEAN passés par l'app
+        scores = inputs.get("scores", {})
+        
+        # Simulation d'un archétype basé sur les habitudes
+        work_style = inputs.get("work_style", {})
+        focus = work_style.get("focus", "Standard")
+        
+        archetype_name = "Stratège"
+        if "Hyperfocus" in focus: archetype_name = "Visionnaire Obsessif"
+        elif "TDAH" in focus: archetype_name = "Explorateur Chaotique"
+        
         return json.dumps({
-            "scores": {
-                "Ouverture": 70, "Conscience": inputs.get('discipline', 30), 
-                "Extraversion": 40, "Agreabilite": 60, "Nevrosisme": 80
-            },
-            "archetype": "Architecte Anxieux",
-            "rarity": "Top 5% (Profil Rare)",
-            "superpower": "Anticipation des risques",
-            "kryptonite": "Paralysie par l'analyse",
-            "quote": "Tu as déjà vécu l'échec 1000 fois dans ta tête avant même de commencer.",
-            # On ajoute les prompts secrets ici
-            "secret_prompts": [
-                "Act as a Neuro-Productivity Expert specialized in High Neuroticism profiles.",
-                "Use the 'Time-Boxing' technique but add 20% buffer for anxiety management.",
-                "Transform every 'Big Goal' into micro-tasks of 15 minutes max."
-            ],
+            "rarity": "Profil Hybride Rare",
+            "archetype": archetype_name,
+            "superpower": "Flux Cognitif Rapide",
+            "kryptonite": "Ennui & Routine",
+            "quote": "Votre cerveau est une Formule 1, ne le conduisez pas comme une Twingo.",
             "planning": [
-                { "titre": "🌅 Réveil & Ancrage (Pas d'écran)", "start_iso": "2025-12-11T08:00:00", "end_iso": "2025-12-11T08:30:00", "categorie": "Routine", "description": "Calme l'amygdale dès le réveil." },
-                { "titre": "🧠 Deep Work : Projet Python (Le plus dur)", "start_iso": "2025-12-11T09:00:00", "end_iso": "2025-12-11T11:00:00", "categorie": "Travail", "description": "Téléphone dans une autre pièce." },
-                { "titre": "🍱 Pause Déjeuner & Marche", "start_iso": "2025-12-11T12:00:00", "end_iso": "2025-12-11T13:00:00", "categorie": "Santé", "description": "Lumière du jour obligatoire." },
-                { "titre": "MMA (Défouloir)", "start_iso": "2025-12-11T19:00:00", "end_iso": "2025-12-11T20:30:00", "categorie": "Sport", "description": "Évacuation du cortisol." }
+                { "titre": "Mise en route (Douceur)", "start_iso": "2025-12-11T09:00:00", "end_iso": "2025-12-11T09:30:00", "categorie": "Routine", "description": "Pas de pression." },
+                { "titre": "Deep Work : Projet Prioritaire", "start_iso": "2025-12-11T09:30:00", "end_iso": "2025-12-11T12:30:00", "categorie": "Travail", "description": "Mode avion activé." },
+                { "titre": "Déjeuner", "start_iso": "2025-12-11T12:30:00", "end_iso": "2025-12-11T13:30:00", "categorie": "Santé", "description": "Pause." }
             ]
         })
 
-    # --- MODE RÉEL (IA) ---
-    # Ici, tu remettras ton prompt complet plus tard
-    return json.dumps({"error": "Mode réel désactivé pour économie quota"})
+    # --- MODE RÉEL (A ACTIVER PLUS TARD) ---
+    # Ici le prompt devra combiner inputs['scores'] et inputs['work_style']
+    return json.dumps({"error": "Mode réel désactivé"})
 
 def generate_ics_file(json_data):
-    # Code standard inchangé
     c = Calendar()
     try:
         if isinstance(json_data, str): data = json.loads(json_data)
