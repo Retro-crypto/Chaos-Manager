@@ -139,28 +139,68 @@ with st.form("psycho_form"):
     # === C'EST ICI QUE SE TROUVENT LES ONGLETS (TABS) ===
     tab1, tab2 = st.tabs(["📂 J'ai déjà mes scores (Expert)", "🔍 Je ne sais pas (Estimation)"])
     
-    # --- ONGLET 1 : SAISIE MANUELLE (Valorisante) ---
+# --- ONGLET 1 : SAISIE MANUELLE (Valorisante & Pédagogique) ---
     with tab1:
         st.markdown("""
-        <div style="background-color: #1c202a; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #00ff00;">
-            ✅ <b>Mode Expert :</b> Entrez vos scores bruts (0-100). L'algorithme affinera la stratégie à la décimale près.
-            <br><i>Source compatible : BigFive-Test, Truity, ou conversion MBTI (J=Haut Conscience, P=Bas Conscience).</i>
+        <div style="background-color: #1c202a; padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #00ff00;">
+            ✅ <b>Mode Expert Activé :</b> 
+            En entrant vos scores précis, vous permettez à l'IA d'ajuster la "chimie" de votre emploi du temps au pourcent près.
+            <br><small>Compatible avec BigFive-Test, Truity, ou conversion MBTI.</small>
         </div>
         """, unsafe_allow_html=True)
 
         col_a, col_b = st.columns(2)
         
         with col_a:
-            st.markdown("##### 🧠 Le Cerveau (Traits Cognitifs)")
-            o_score = st.number_input("🌊 Ouverture (Créativité / Curiosité)", 0, 100, 0, key="o_in", help="Haut (>70) : Visionnaire | Bas (<30) : Pragmatique")
-            c_score = st.number_input("📐 Conscience (Discipline / Ordre)", 0, 100, 0, key="c_in", help="Haut (>70) : Architecte | Bas (<30) : Improvisateur")
-            e_score = st.number_input("⚡ Extraversion (Énergie Sociale)", 0, 100, 0, key="e_in", help="Haut (>70) : Leader | Bas (<30) : Solitaire")
+            st.markdown("##### 🧠 Le Cerveau (Traitement de l'Info)")
+            
+            # OUVERTURE
+            o_score = st.number_input("🌊 Ouverture (O) - Score /100", 0, 100, 0, key="o_in")
+            st.markdown("""
+            <div style="font-size:13px; color:#aaa; margin-bottom:15px; border-left:2px solid #555; padding-left:10px;">
+                <b>L'impact Productif :</b> Un score élevé (>75) révèle un <i>Cerveau Explorateur</i>. 
+                Travailler 4h sur le même sujet vous éteint. L'IA doit alterner les contextes pour garder votre dopamine active.
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # CONSCIENCE
+            c_score = st.number_input("📐 Conscience (C) - Score /100", 0, 100, 0, key="c_in")
+            st.markdown("""
+            <div style="font-size:13px; color:#aaa; margin-bottom:15px; border-left:2px solid #555; padding-left:10px;">
+                <b>L'impact Productif :</b> Un score bas (<30) n'est pas de la paresse, c'est un <i>Moteur à Urgence</i>. 
+                L'IA remplacera la planification rigide par du "Time-Boxing" agressif et des deadlines courtes.
+            </div>
+            """, unsafe_allow_html=True)
+
+            # EXTRAVERSION
+            e_score = st.number_input("⚡ Extraversion (E) - Score /100", 0, 100, 0, key="e_in")
+            st.markdown("""
+            <div style="font-size:13px; color:#aaa; margin-bottom:15px; border-left:2px solid #555; padding-left:10px;">
+                <b>L'impact Productif :</b> Détermine votre batterie sociale. 
+                Si vous êtes bas (<40), une réunion inutile vous coûte 2h de concentration. L'IA doit sanctuariser vos temps de silence.
+            </div>
+            """, unsafe_allow_html=True)
         
         with col_b:
-            st.markdown("##### ❤️ Le Coeur (Traits Émotionnels)")
-            a_score = st.number_input("🤝 Agréabilité (Coopération)", 0, 100, 0, key="a_in", help="Haut (>70) : Diplomate | Bas (<30) : Compétiteur")
-            n_score = st.number_input("🌪️ Névrosisme (Sensibilité Stress)", 0, 100, 0, key="n_in", help="Haut (>70) : Sentinelle | Bas (<30) : Roc Inébranlable")
-
+            st.markdown("##### ❤️ Le Coeur (Gestion Émotionnelle)")
+            
+            # AGRÉABILITÉ
+            a_score = st.number_input("🤝 Agréabilité (A) - Score /100", 0, 100, 0, key="a_in")
+            st.markdown("""
+            <div style="font-size:13px; color:#aaa; margin-bottom:15px; border-left:2px solid #555; padding-left:10px;">
+                <b>L'impact Productif :</b> Un score haut (>80) fait de vous un <i>Diplomate</i> qui a du mal à dire non. 
+                L'IA doit bloquer des créneaux "Forteresse" pour empêcher les autres de manger votre temps.
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # NÉVROSISME
+            n_score = st.number_input("🌪️ Névrosisme (N) - Score /100", 0, 100, 0, key="n_in")
+            st.markdown("""
+            <div style="font-size:13px; color:#aaa; margin-bottom:15px; border-left:2px solid #555; padding-left:10px;">
+                <b>L'impact Productif :</b> C'est votre "Radar à Risques". 
+                Un score élevé (>60) signifie que l'incertitude vous paralyse. L'IA va hyper-structurer votre journée pour calmer l'amygdale.
+            </div>
+            """, unsafe_allow_html=True)
     # --- ONGLET 2 : SLIDERS (Corrigé & Détaillé) ---
     with tab2:
         st.markdown("""
@@ -207,8 +247,7 @@ with st.form("psycho_form"):
         st.markdown("""**0% (Roc)** : Le stress glisse sur moi. Calme olympien en crise.<br>**100% (Sentinelle)** : Je repère tous les risques. Le stress peut me paralyser.""", unsafe_allow_html=True)
         n_est = st.slider("Position N :", 0, 100, 50, key="slider_n", label_visibility="collapsed")
 
-    st.markdown("---")
-    st.write("#### 2. Calibration du 'Software' (Méthodes de Travail)")
+
     # ... (Le reste du code reste identique) ...
     st.markdown("---")
     st.write("#### 2. Calibration du 'Software' (Méthodes de Travail)")
