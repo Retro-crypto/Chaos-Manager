@@ -6,6 +6,7 @@ import json
 import re
 import ast
 import time
+import random # Pour la simulation des courbes
 from dotenv import load_dotenv
 
 load_dotenv()

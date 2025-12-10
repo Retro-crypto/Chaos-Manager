@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go # Pour les graphiques avancés
 from backend import parse_schedule, generate_ics_file
 
 st.set_page_config(page_title="Chaos Manager V5", page_icon="🧠", layout="wide")
@@ -335,41 +336,106 @@ if submitted:
             data = json.loads(parse_schedule(inputs))
             
             # --- RÉSULTATS ---
+            # --- DÉBUT DE LA GREFFE V7 (INTERFACE ONGLETS) ---
             st.markdown("---")
-            col_card, col_radar = st.columns([1, 1])
             
-            with col_card:
-                st.markdown(f"""
-                <div class="rpg-card">
-                    <div style="font-size:12px; color:#FF4B4B; font-weight:bold;">🧬 PROFIL NEURO-CROSS : {data.get('rarity')}</div>
-                    <div class="archetype-title">{data.get('archetype')}</div>
-                    <p style="font-style:italic; color:#aaa; margin-top:10px;">"{data.get('quote')}"</p>
-                    <hr style="border-color:#444;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                        <span>⚔️ Levier Principal :</span><span style="color:white; font-weight:bold;">{data.get('superpower')}</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between;">
-                        <span>⚠️ Point de Rupture :</span><span style="color:white; font-weight:bold;">{data.get('kryptonite')}</span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+            # Création des 3 onglets de visualisation
+            res_tab1, res_tab2, res_tab3 = st.tabs(["📅 Synthèse & Planning", "⚡ Bio-Rythme (New)", "🧬 Matrice Énergie (New)"])
+            
+            # --- ONGLET 1 : L'AFFICHAGE CLASSIQUE (Card + Radar + Planning) ---
+            with res_tab1:
+                col_card, col_radar = st.columns([1, 1])
                 
-            with col_radar:
-                df_scores = pd.DataFrame(dict(r=list(final_scores.values()), theta=list(final_scores.keys())))
-                fig = px.line_polar(df_scores, r='r', theta='theta', line_close=True, range_r=[0,100])
-                fig.update_traces(fill='toself', line_color='#FF4B4B')
-                fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="white"))
-                st.plotly_chart(fig, use_container_width=True)
+                with col_card:
+                    st.markdown(f"""
+                    <div class="rpg-card">
+                        <div style="font-size:12px; color:#FF4B4B; font-weight:bold;">🧬 PROFIL : {data.get('rarity', 'Inconnu')}</div>
+                        <div class="archetype-title">{data.get('archetype', 'Architecte')}</div>
+                        <p style="font-style:italic; color:#aaa; margin-top:10px;">"{data.get('quote', 'Pas de citation')}"</p>
+                        <hr style="border-color:#444;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                            <span>⚔️ Levier :</span><span style="color:white; font-weight:bold;">{data.get('superpower', 'N/A')}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span>⚠️ Rupture :</span><span style="color:white; font-weight:bold;">{data.get('kryptonite', 'N/A')}</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                with col_radar:
+                    # Ton radar existant
+                    df_scores = pd.DataFrame(dict(r=list(final_scores.values()), theta=list(final_scores.keys())))
+                    fig = px.line_polar(df_scores, r='r', theta='theta', line_close=True, range_r=[0,100])
+                    fig.update_traces(fill='toself', line_color='#FF4B4B')
+                    fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="white"))
+                    st.plotly_chart(fig, use_container_width=True)
 
-            # --- TEASING PLANNING ---
-            st.markdown("---")
-            st.subheader("📅 Votre Stratégie Temporelle (Aperçu)")
+                # Aperçu Planning (Tableau)
+                st.subheader("📅 Aperçu Stratégique")
+                planning = data.get("planning", [])
+                if len(planning) > 0:
+                    df_free = pd.DataFrame(planning)
+                    # On vérifie les colonnes pour éviter un crash si le JSON est incomplet
+                    cols_to_show = [c for c in ["titre", "start_iso", "categorie"] if c in df_free.columns]
+                    st.dataframe(df_free[cols_to_show], hide_index=True, use_container_width=True)
+                else:
+                    st.info("Aucun planning généré pour l'instant.")
+
+            # --- ONGLET 2 : LE BIO-RYTHME (NOUVEAU) ---
+            with res_tab2:
+                st.markdown("#### 🌊 Courbe d'Énergie Circadienne")
+                st.caption(f"Simulation de vos niveaux de cortisol basés sur le chronotype : **{chronotype}**")
+                
+                # On récupère les data générées par le backend V7
+                energy_data = data.get("chart_energy", [])
+                
+                if energy_data:
+                    df_energy = pd.DataFrame(energy_data)
+                    fig_energy = px.line(df_energy, x="heure", y="niveau", markers=True, line_shape="spline")
+                    fig_energy.update_traces(line_color='#00ff00', line_width=3)
+                    fig_energy.add_hline(y=80, line_dash="dot", line_color="white", annotation_text="Zone Hyperfocus")
+                    fig_energy.update_layout(
+                        xaxis_title="Heure (06h - 23h)", 
+                        yaxis_title="Énergie Cognitive",
+                        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="#161924",
+                        font=dict(color="white")
+                    )
+                    st.plotly_chart(fig_energy, use_container_width=True)
+                else:
+                    st.warning("⚠️ Données d'énergie non disponibles (Vérifiez que le Backend est bien en mode V7/Debug).")
+
+            # --- ONGLET 3 : LA MATRICE (NOUVEAU) ---
+            with res_tab3:
+                st.markdown("#### 🔋 Coût Énergétique des Tâches")
+                st.caption(f"Impact sur votre batterie sociale (Basé sur Extraversion : {final_scores['Extraversion']}%)")
+                
+                matrix_data = data.get("chart_matrix", [])
+                
+                if matrix_data:
+                    df_matrix = pd.DataFrame(matrix_data)
+                    # Bar chart horizontal
+                    fig_matrix = go.Figure(go.Bar(
+                        x=df_matrix['impact'],
+                        y=df_matrix['tache'],
+                        orientation='h',
+                        marker=dict(
+                            color=df_matrix['impact'],
+                            colorscale='RdYlGn', # Rouge à Vert
+                            midpoint=0
+                        )
+                    ))
+                    fig_matrix.update_layout(
+                        xaxis_title="Drain (-) vs Recharge (+)",
+                        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                        font=dict(color="white")
+                    )
+                    st.plotly_chart(fig_matrix, use_container_width=True)
+                else:
+                    st.warning("⚠️ Données matrice non disponibles.")
+
+            # --- FIN DE LA GREFFE V7 ---
             
-            planning = data.get("planning", [])
-            if len(planning) > 0:
-                df_free = pd.DataFrame(planning[:2])
-                st.dataframe(df_free[["titre", "start_iso", "end_iso", "categorie"]], hide_index=True, use_container_width=True)
-            
+            # (Ici tu laisses ton Paywall 'locked-section' qui était déjà en bas)
             # --- PAYWALL ---
             st.markdown('<div class="locked-section">', unsafe_allow_html=True)
             st.write("🔒 **RAPPORT NEURO-PSYCHOLOGIQUE COMPLET VERROUILLÉ**")
