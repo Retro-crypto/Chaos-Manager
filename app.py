@@ -132,64 +132,84 @@ st.markdown("#### 1. Calibration Neuro-Psychologique")
 
 st.caption("Importez vos données ou faites une estimation rapide. L'IA va sélectionner les 'Secret Prompts' adaptés à tes scores.")
 
+# ... (Le début du code reste inchangé) ...
+
 with st.form("psycho_form"):
     
     # === C'EST ICI QUE SE TROUVENT LES ONGLETS (TABS) ===
-    tab1, tab2 = st.tabs(["📂 J'ai déjà mes scores OCEAN", "🔍 Je ne sais pas (Estimation)"])
+    tab1, tab2 = st.tabs(["📂 J'ai déjà mes scores (Expert)", "🔍 Je ne sais pas (Estimation)"])
     
-    # Onglet 1 : Saisie Manuelle (Pour les experts)
+    # --- ONGLET 1 : SAISIE MANUELLE (Valorisante) ---
     with tab1:
-        st.info("Entrez les pourcentages obtenus sur BigFive-Test ou convertissez vos lettres MBTI.")
-        c1, c2, c3, c4, c5 = st.columns(5)
-        # On met 0 par défaut pour savoir si l'utilisateur a rempli ou pas
-        o_score = c1.number_input("Ouverture", 0, 100, 0, key="o_in")
-        c_score = c2.number_input("Conscience", 0, 100, 0, key="c_in")
-        e_score = c3.number_input("Extraversion", 0, 100, 0, key="e_in")
-        a_score = c4.number_input("Agréabilité", 0, 100, 0, key="a_in")
-        n_score = c5.number_input("Névrosisme", 0, 100, 0, key="n_in")
+        st.markdown("""
+        <div style="background-color: #1c202a; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #00ff00;">
+            ✅ <b>Mode Expert :</b> Entrez vos scores bruts (0-100). L'algorithme affinera la stratégie à la décimale près.
+            <br><i>Source compatible : BigFive-Test, Truity, ou conversion MBTI (J=Haut Conscience, P=Bas Conscience).</i>
+        </div>
+        """, unsafe_allow_html=True)
 
-    # Onglet 2 : Sliders (Pour les autres) - VERSION EXPERTE & DÉTAILLÉE
+        col_a, col_b = st.columns(2)
+        
+        with col_a:
+            st.markdown("##### 🧠 Le Cerveau (Traits Cognitifs)")
+            o_score = st.number_input("🌊 Ouverture (Créativité / Curiosité)", 0, 100, 0, key="o_in", help="Haut (>70) : Visionnaire | Bas (<30) : Pragmatique")
+            c_score = st.number_input("📐 Conscience (Discipline / Ordre)", 0, 100, 0, key="c_in", help="Haut (>70) : Architecte | Bas (<30) : Improvisateur")
+            e_score = st.number_input("⚡ Extraversion (Énergie Sociale)", 0, 100, 0, key="e_in", help="Haut (>70) : Leader | Bas (<30) : Solitaire")
+        
+        with col_b:
+            st.markdown("##### ❤️ Le Coeur (Traits Émotionnels)")
+            a_score = st.number_input("🤝 Agréabilité (Coopération)", 0, 100, 0, key="a_in", help="Haut (>70) : Diplomate | Bas (<30) : Compétiteur")
+            n_score = st.number_input("🌪️ Névrosisme (Sensibilité Stress)", 0, 100, 0, key="n_in", help="Haut (>70) : Sentinelle | Bas (<30) : Roc Inébranlable")
+
+    # --- ONGLET 2 : SLIDERS (Corrigé & Détaillé) ---
     with tab2:
         st.markdown("""
         <div style="background-color: #262730; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; border: 1px solid #444;">
-            ℹ️ <b>Calibration Cognitive :</b> Positionnez le curseur selon votre tendance naturelle au travail. 
+            ℹ️ <b>Calibration Cognitive :</b> Positionnez le curseur selon votre tendance naturelle. 
             Il n'y a pas de "bon" score. Un score bas en Conscience favorise la créativité, un score haut favorise l'exécution.
         </div>
         """, unsafe_allow_html=True)
 
+        # On utilise des triples guillemets (""") pour éviter le bug des guillemets internes
+        
         # --- O : OUVERTURE ---
-        st.markdown("#### 🌊 1. Facteur O : La Nouveauté (Ouverture)")
-        st.caption("🧠 *Impact Travail : Capacité à tolérer la routine vs Besoin d'innovation.*")
-        st.markdown("**0% (Pragmatique)** : J'aime les processus clairs, la répétition, l'efficacité éprouvée.<br>**100% (Explorateur)** : Je m'ennuie vite, j'ai besoin de théoriser et de changer de méthode souvent.", unsafe_allow_html=True)
-        o_est = st.slider("Votre positionnement O :", 0, 100, 50, key="slider_o", label_visibility="collapsed")
+        st.markdown("#### 🌊 1. Facteur O : La Nouveauté")
+        st.caption("🧠 *Impact Travail : Tolérance à la routine vs Besoin d'innovation.*")
+        st.markdown("""**0% (Pragmatique)** : J'aime les processus clairs et l'efficacité prouvée.<br>**100% (Explorateur)** : Je m'ennuie vite, j'ai besoin de changer de méthode souvent.""", unsafe_allow_html=True)
+        o_est = st.slider("Position O :", 0, 100, 50, key="slider_o", label_visibility="collapsed")
         st.markdown("---")
 
         # --- C : CONSCIENCE ---
-        st.markdown("#### 📐 2. Facteur C : La Structure (Conscience)")
-        st.caption("🧠 *Impact Travail : Gestion des délais et finition des tâches.*")
-        st.markdown("**0% (Spontané)** : Je travaille par 'bursts' d'énergie, je suis flexible mais désordonné. Je démarre beaucoup de choses.<br>**100% (Architecte)** : Je planifie tout à l'avance, je finis toujours ce que je commence, je suis mal à l'aise sans plan.", unsafe_allow_html=True)
-        c_est = st.slider("Votre positionnement C :", 0, 100, 50, key="slider_c", label_visibility="collapsed")
+        st.markdown("#### 📐 2. Facteur C : La Structure")
+        st.caption("🧠 *Impact Travail : Gestion des délais et finition.*")
+        # CORRECTION BUG ICI : On utilise les triples guillemets pour encadrer le tout
+        st.markdown("""**0% (Spontané)** : Je travaille par "bursts" d'énergie, flexible mais parfois désordonné.<br>**100% (Architecte)** : Je planifie tout, je suis mal à l'aise sans plan précis.""", unsafe_allow_html=True)
+        c_est = st.slider("Position C :", 0, 100, 50, key="slider_c", label_visibility="collapsed")
         st.markdown("---")
 
         # --- E : EXTRAVERSION ---
-        st.markdown("#### ⚡ 3. Facteur E : La Stimulation (Extraversion)")
-        st.caption("🧠 *Impact Travail : Gestion de l'environnement et des réunions.*")
-        st.markdown("**0% (Deep Worker)** : Les interactions me drainent. Je suis ultra-efficace seul dans le silence.<br>**100% (Connecteur)** : Je pense en parlant. L'isolement m'épuise, j'ai besoin du buzz de l'équipe pour avancer.", unsafe_allow_html=True)
-        e_est = st.slider("Votre positionnement E :", 0, 100, 50, key="slider_e", label_visibility="collapsed")
+        st.markdown("#### ⚡ 3. Facteur E : La Stimulation")
+        st.caption("🧠 *Impact Travail : Besoin d'interaction pour réfléchir.*")
+        st.markdown("""**0% (Deep Worker)** : L'isolement me rend productif. Le bruit me draine.<br>**100% (Connecteur)** : Je pense en parlant. J'ai besoin du buzz de l'équipe.""", unsafe_allow_html=True)
+        e_est = st.slider("Position E :", 0, 100, 50, key="slider_e", label_visibility="collapsed")
         st.markdown("---")
 
         # --- A : AGRÉABILITÉ ---
-        st.markdown("#### 🤝 4. Facteur A : La Coopération (Agréabilité)")
-        st.caption("🧠 *Impact Travail : Négociation et capacité à dire Non.*")
-        st.markdown("**0% (Challenger)** : Je priorise mes objectifs, je sais dire non fermement, quitte à être perçu comme froid.<br>**100% (Diplomate)** : Je cherche l'harmonie, j'ai du mal à refuser une demande d'aide, je fais passer l'équipe avant moi.", unsafe_allow_html=True)
-        a_est = st.slider("Votre positionnement A :", 0, 100, 50, key="slider_a", label_visibility="collapsed")
+        st.markdown("#### 🤝 4. Facteur A : La Coopération")
+        st.caption("🧠 *Impact Travail : Capacité à dire Non et négocier.*")
+        st.markdown("""**0% (Challenger)** : Je priorise l'objectif, je sais dire non fermement.<br>**100% (Diplomate)** : Je cherche l'harmonie, j'ai du mal à refuser une aide.""", unsafe_allow_html=True)
+        a_est = st.slider("Position A :", 0, 100, 50, key="slider_a", label_visibility="collapsed")
         st.markdown("---")
 
         # --- N : NÉVROSISME ---
-        st.markdown("#### 🌪️ 5. Facteur N : La Réactivité (Névrosisme)")
-        st.caption("🧠 *Impact Travail : Gestion du stress et perfectionnisme.*")
-        st.markdown("**0% (Roc)** : Le stress glisse sur moi. Je reste calme en crise, parfois détaché.<br>**100% (Sentinelle)** : Je suis hyper-vigilant aux risques. Je repère les erreurs, mais le stress me paralyse ou me rend perfectionniste.", unsafe_allow_html=True)
-        n_est = st.slider("Votre positionnement N :", 0, 100, 50, key="slider_n", label_visibility="collapsed")
+        st.markdown("#### 🌪️ 5. Facteur N : La Réactivité")
+        st.caption("🧠 *Impact Travail : Gestion du stress et des risques.*")
+        st.markdown("""**0% (Roc)** : Le stress glisse sur moi. Calme olympien en crise.<br>**100% (Sentinelle)** : Je repère tous les risques. Le stress peut me paralyser.""", unsafe_allow_html=True)
+        n_est = st.slider("Position N :", 0, 100, 50, key="slider_n", label_visibility="collapsed")
+
+    st.markdown("---")
+    st.write("#### 2. Calibration du 'Software' (Méthodes de Travail)")
+    # ... (Le reste du code reste identique) ...
     st.markdown("---")
     st.write("#### 2. Calibration du 'Software' (Méthodes de Travail)")
     st.caption("Comment votre cerveau fonctionne-t-il *en situation* ?")
