@@ -594,7 +594,6 @@ if submitted:
                     st.warning("⚠️ Données matrice non disponibles.")
             # ... Vos onglets existants ...
             with res_tab4:
-                st.markdown("#### 🧠 Théorie : Le Modèle de Fogg (B=MAT)")
                 st.markdown("""
                         ### 🧠 Théorie : La Physique de l'Action (Modèle B=MAT)
                         **Le Postulat : La Thermodynamique Comportementale**
