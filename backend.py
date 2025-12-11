@@ -51,7 +51,12 @@ def parse_schedule(inputs):
             {"tache": "Lecture Doc", "impact": 30},
             {"tache": "Emails", "impact": -10}
         ]
-
+        fogg_data = [
+            {"tache": "Code Python", "dopamine": 80, "friction": 40, "importance": 90, "zone": "Action", "description": "Grosse satisfaction, démarrage moyen."},
+            {"tache": "Appeler Maman", "dopamine": 50, "friction": 20, "importance": 60, "zone": "Action", "description": "Facile et gratifiant."},
+            {"tache": "Factures / Admin", "dopamine": 10, "friction": 90, "importance": 80, "zone": "Procrastination", "description": "L'enfer. Stratégie : Réduire la friction."},
+            {"tache": "TikTok / Insta", "dopamine": 70, "friction": 5, "importance": 10, "zone": "Piège", "description": "Récompense immédiate, effort nul."}
+        ]
         return json.dumps({
             # --- TEXTES D'ANALYSE ---
             "rarity": "Profil Neuro-Cross RARE",
@@ -63,10 +68,11 @@ def parse_schedule(inputs):
             "analysis_global": "Votre profil indique une haute tolérance au risque (O+) mais une batterie sociale faible (E-). L'IA a structuré la journée pour protéger vos blocs de concentration le matin.",
             "analysis_bio": "Pic de cortisol détecté à 08h30. Le créneau 09h-11h est mathématiquement votre fenêtre de rentabilité maximale.",
             "analysis_social": "Votre score d'Extraversion (E<30) transforme les réunions en dette énergétique. Le planning limite les interactions à 45min max.",
-
+            "analysis_fogg": "Votre tâche 'Factures' est dans la zone critique (Friction > Motivation). Stratégie : Faites-le en 5min chrono (Micro-Sprint) pour baisser la friction.",
             # --- DONNÉES GRAPHIQUES ---
             "chart_energy": energy_curve,
             "chart_matrix": matrix_data,
+            "chart_fogg": fogg_data,
 
             # --- PLANNING ---
             "planning": [
