@@ -12,20 +12,41 @@ from dotenv import load_dotenv
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-DEBUG_MODE = True 
+DEBUG_MODE = False
+
+
+
+# Configuration du Modèle (On force le JSON pour la stabilité)
+generation_config = {
+    "temperature": 0.7,
+    "top_p": 0.95,
+    "top_k": 40,
+    "max_output_tokens": 8192,
+    "response_mime_type": "application/json",
+}
+
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-pro", # Ou "gemini-1.5-pro" pour plus de finesse (mais plus lent)
+    generation_config=generation_config,
+)
 
 def clean_and_parse_json(text):
-    match = re.search(r"\{.*\}", text, re.DOTALL)
-    if match: cleaned_text = match.group(0)
-    else: return {"error": "Pas de JSON trouvé"}
-    try: return json.loads(cleaned_text)
+    """Nettoyeur de JSON robuste"""
+    try:
+        return json.loads(text)
     except:
-        try: return ast.literal_eval(cleaned_text)
-        except: return {"error": "Échec lecture JSON"}
+        # Cas de secours si le modèle ajoute du markdown ```json ... ```
+        match = re.search(r"\{.*\}", text, re.DOTALL)
+        if match:
+            cleaned_text = match.group(0)
+            try:
+                return json.loads(cleaned_text)
+            except:
+                pass
+    return {"error": "Format JSON invalide renvoyé par l'IA"}
 
 def parse_schedule(inputs):
-    
-    # --- MODE SIMULATION (DEBUG) ---
+        # --- MODE SIMULATION (DEBUG) ---
     if DEBUG_MODE:
         time.sleep(1.0) # Simulation calcul
         
@@ -86,7 +107,96 @@ def parse_schedule(inputs):
 
     # --- MODE RÉEL (Génératif) ---
     # Ici tu mettras ton appel Gemini plus tard
-    return json.dumps({"error": "Mode réel désactivé"})
+    else: 
+        today_date = datetime.date.today().isoformat()
+        """
+        Le Cerveau Principal.
+        Reçoit : Dictionnaire 'inputs' (Scores, Routine, Mission, etc.)
+        Renvoie : String JSON complet pour le Frontend.
+        """
+        
+        # 1. Extraction des données pour le Prompt
+        scores = inputs.get("scores", {})
+        work_style = inputs.get("work_style", {})
+        context = inputs.get("context", {})
+        
+        # 2. Construction du Mega-Prompt (Ingénierie de Prompt)
+        user_prompt = f"""
+        CONTEXTE UTILISATEUR (NEURO-PROFIL):
+        - Scores OCEAN : {scores}
+        - Chronotype (Energie) : {work_style.get('chronotype')}
+        - Tendance Discipline (Rubin) : {work_style.get('tendency')}
+        - Zone de Génie (Lencioni) : {work_style.get('genius')}
+        
+        CONTEXTE OPERATIONNEL :
+        - Routine Actuelle : "{context.get('routine')}"
+        - Blocages / Freins identifiés : "{context.get('blockers')}"
+        - MISSION DU JOUR (Impératifs) : "{context.get('mission')}"
+
+        TACHE :
+        Agis comme un architecte de systèmes cognitifs expert.
+        1. Analyse les failles entre le profil de l'utilisateur et sa routine actuelle.
+        2. Génère un planning ultra-optimisé qui respecte sa biologie (Chronotype) et sa psychologie.
+        3. Calcule les données pour les graphiques d'énergie, de matrice sociale et de modèle Fogg.
+        
+        CONTRAINTES DE SORTIE (JSON STRICT) :
+        Tu DOIS répondre UNIQUEMENT par un objet JSON respectant exactement cette structure :
+        {{
+            "rarity": "Nom RPG du profil (ex: Archimage Chaotique)",
+            "archetype": "Titre Professionnel (ex: Stratège Nocturne)",
+            "quote": "Citation courte percutante adaptée au profil",
+            "superpower": "Le plus grand atout cognitif de ce profil",
+            "kryptonite": "La plus grande faiblesse (ex: Ennui administratif)",
+            
+            "analysis_global": "Analyse psycho-stratégique (3 phrases max). Explique pourquoi tu as structuré la journée ainsi.",
+            "analysis_bio": "Analyse du rythme circadien spécifique à ce profil.",
+            "analysis_social": "Analyse du coût énergétique social (Introversion/Extraversion).",
+            "analysis_fogg": "Analyse comportementale (Dopamine vs Friction) basée sur les 'Blockers' fournis.",
+            
+            "chart_energy": [
+                {{"heure": 6, "niveau": 20}}, ... jusqu'à 23h. (0-100)
+            ],
+            "chart_matrix": [
+                {{"tache": "Nom Tache", "impact": -50}} (Impact négatif = Drain, Positif = Recharge)
+            ],
+            "chart_fogg": [
+                {{"tache": "Nom Tache", "dopamine": 10-100, "friction": 10-100, "importance": 10-100, "zone": "Action/Procrastination/Piège", "description": "Court commentaire"}}
+            ],
+            
+            "planning": [
+                {{
+                    "titre": "Titre Action",
+                    "start_iso": "YYYY-MM-DDTHH:MM:00", (Date de demain par défaut)
+                    "end_iso": "YYYY-MM-DDTHH:MM:00",
+                    "categorie": "Travail/Santé/Admin/DeepWork",
+                    "description": "Consigne tactique précise (ex: 'Téléphone dans l'autre pièce')"
+                }}
+            ]
+        }}
+        """
+
+        try:
+            # 3. Appel à Gemini (Le "vrai" traitement)
+            response = model.generate_content(user_prompt)
+            
+            # 4. Nettoyage et Renvoi
+            json_data = clean_and_parse_json(response.text)
+            
+            # Petit hack pour s'assurer que les dates du planning sont valides (parfois l'IA met des dates fictives)
+            # On pourrait ajouter ici une logique pour recaler les dates sur "Aujourd'hui" ou "Demain"
+            
+            return json.dumps(json_data)
+
+        except Exception as e:
+            return json.dumps({
+                "error": f"Erreur Gemini : {str(e)}",
+                "planning": [],
+                "analysis_global": "L'IA n'a pas pu traiter la demande. Vérifiez votre clé API ou vos quotas."
+            })
+    
+
+
+
 
 def generate_ics_file(json_data):
     c = Calendar()
