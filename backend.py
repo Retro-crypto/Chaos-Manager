@@ -46,152 +46,63 @@ def clean_and_parse_json(text):
     return {"error": "Format JSON invalide renvoyé par l'IA"}
 
 def parse_schedule(inputs):
-        # --- MODE SIMULATION (DEBUG) ---
+    
+    # --- DIAGNOSTIC CLÉ API ---
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        print("🚨 ERREUR CRITIQUE : Aucune clé API trouvée dans les variables d'environnement !")
+        return json.dumps({"error": "Pas de clé API", "analysis_global": "⚠️ Clé API manquante. Vérifiez le fichier .env"})
+    else:
+        print(f"✅ Clé API détectée : {api_key[:5]}... (Masquée)")
+
+    # --- MODE SIMULATION ---
     if DEBUG_MODE:
-        time.sleep(1.0) # Simulation calcul
-        
-        # Récupération des données riches pour personnaliser (fictif)
-        work_style = inputs.get("work_style", {})
-        animal = work_style.get("chronotype", "Ours").split(" ")[1] 
-        
-        # --- GENERATION DES DONNEES FICTIVES POUR LES GRAPHIQUES ---
-        # 1. Courbe d'énergie (06h - 23h)
-        energy_curve = []
-        for h in range(6, 24):
-            # Simulation d'un pic le matin et un creux l'aprem
-            level = 50 + 40 * 0.9 if (9 <= h <= 12) else 30
-            if h == 14: level = 20 # Crash digestion
-            if h == 19: level = 70 # Rebond
-            energy_curve.append({"heure": h, "niveau": int(level + random.randint(-5, 5))})
+        # ... (Ton code debug existant, ne change rien ici) ...
+        print("⚠️ MODE DEBUG ACTIF : Données fictives envoyées.")
+        return json.dumps({...}) # Ton code debug existant
 
-        # 2. Matrice Sociale
-        matrix_data = [
-            {"tache": "Réunion Client", "impact": -85},
-            {"tache": "Brainstorming Équipe", "impact": -40},
-            {"tache": "Code Solo (Python)", "impact": 90},
-            {"tache": "Lecture Doc", "impact": 30},
-            {"tache": "Emails", "impact": -10}
-        ]
-        fogg_data = [
-            {"tache": "Code Python", "dopamine": 80, "friction": 40, "importance": 90, "zone": "Action", "description": "Grosse satisfaction, démarrage moyen."},
-            {"tache": "Appeler Maman", "dopamine": 50, "friction": 20, "importance": 60, "zone": "Action", "description": "Facile et gratifiant."},
-            {"tache": "Factures / Admin", "dopamine": 10, "friction": 90, "importance": 80, "zone": "Procrastination", "description": "L'enfer. Stratégie : Réduire la friction."},
-            {"tache": "TikTok / Insta", "dopamine": 70, "friction": 5, "importance": 10, "zone": "Piège", "description": "Récompense immédiate, effort nul."}
-        ]
-        return json.dumps({
-            # --- TEXTES D'ANALYSE ---
-            "rarity": "Profil Neuro-Cross RARE",
-            "archetype": f"{animal} Stratège", 
-            "superpower": "Hyperfocus Séquentiel",
-            "kryptonite": "Interruptions synchrones",
-            "quote": "Le chaos n'est pas un ennemi, c'est du carburant mal raffiné.",
-            
-            "analysis_global": "Votre profil indique une haute tolérance au risque (O+) mais une batterie sociale faible (E-). L'IA a structuré la journée pour protéger vos blocs de concentration le matin.",
-            "analysis_bio": "Pic de cortisol détecté à 08h30. Le créneau 09h-11h est mathématiquement votre fenêtre de rentabilité maximale.",
-            "analysis_social": "Votre score d'Extraversion (E<30) transforme les réunions en dette énergétique. Le planning limite les interactions à 45min max.",
-            "analysis_fogg": "Votre tâche 'Factures' est dans la zone critique (Friction > Motivation). Stratégie : Faites-le en 5min chrono (Micro-Sprint) pour baisser la friction.",
-            # --- DONNÉES GRAPHIQUES ---
-            "chart_energy": energy_curve,
-            "chart_matrix": matrix_data,
-            "chart_fogg": fogg_data,
-
-            # --- PLANNING ---
-            "planning": [
-                { "titre": "🌞 Activation Dopaminergique", "start_iso": "2025-12-12T07:30:00", "end_iso": "2025-12-12T08:00:00", "categorie": "Santé", "description": "Lumière directe + Protéines. Pas de téléphone." },
-                { "titre": "🧠 Deep Work (Pic Cortisol)", "start_iso": "2025-12-12T09:00:00", "end_iso": "2025-12-12T11:30:00", "categorie": "Travail", "description": "Tâche unique : Avancer sur le projet Python." },
-                { "titre": "⚡ Admin Burst (Basse énergie)", "start_iso": "2025-12-12T13:30:00", "end_iso": "2025-12-12T14:30:00", "categorie": "Admin", "description": "Emails, appels, factures. Mode robot." },
-                { "titre": "🔄 Reset Cognitif", "start_iso": "2025-12-12T16:00:00", "end_iso": "2025-12-12T16:20:00", "categorie": "Santé", "description": "NSDR ou Marche rapide." },
-                { "titre": "🎨 Creative Flow (Loup)", "start_iso": "2025-12-12T20:00:00", "end_iso": "2025-12-12T22:00:00", "categorie": "Créativité", "description": "Pas de censure, écriture libre." }
-            ]
-        })
-
-    # --- MODE RÉEL (Génératif) ---
-    # Ici tu mettras ton appel Gemini plus tard
-    else: 
-        today_date = datetime.date.today().isoformat()
-        """
-        Le Cerveau Principal.
-        Reçoit : Dictionnaire 'inputs' (Scores, Routine, Mission, etc.)
-        Renvoie : String JSON complet pour le Frontend.
-        """
+    # --- MODE RÉEL (GEMINI) ---
+    else:
+        print("🧠 Démarrage appel Gemini...")
         
-        # 1. Extraction des données pour le Prompt
+        # ... (Ton extraction de données scores/context) ...
+        # Copie bien ton code d'extraction ici
         scores = inputs.get("scores", {})
         work_style = inputs.get("work_style", {})
         context = inputs.get("context", {})
-        
-        # 2. Construction du Mega-Prompt (Ingénierie de Prompt)
-        user_prompt = f"""
-        CONTEXTE UTILISATEUR (NEURO-PROFIL):
-        - Scores OCEAN : {scores}
-        - Chronotype (Energie) : {work_style.get('chronotype')}
-        - Tendance Discipline (Rubin) : {work_style.get('tendency')}
-        - Zone de Génie (Lencioni) : {work_style.get('genius')}
-        
-        CONTEXTE OPERATIONNEL :
-        - Routine Actuelle : "{context.get('routine')}"
-        - Blocages / Freins identifiés : "{context.get('blockers')}"
-        - MISSION DU JOUR (Impératifs) : "{context.get('mission')}"
+        today_date = datetime.date.today().isoformat()
 
-        TACHE :
-        Agis comme un architecte de systèmes cognitifs expert.
-        1. Analyse les failles entre le profil de l'utilisateur et sa routine actuelle.
-        2. Génère un planning ultra-optimisé qui respecte sa biologie (Chronotype) et sa psychologie.
-        3. Calcule les données pour les graphiques d'énergie, de matrice sociale et de modèle Fogg.
-        
-        CONTRAINTES DE SORTIE (JSON STRICT) :
-        Tu DOIS répondre UNIQUEMENT par un objet JSON respectant exactement cette structure :
-        {{
-            "rarity": "Nom RPG du profil (ex: Archimage Chaotique)",
-            "archetype": "Titre Professionnel (ex: Stratège Nocturne)",
-            "quote": "Citation courte percutante adaptée au profil",
-            "superpower": "Le plus grand atout cognitif de ce profil",
-            "kryptonite": "La plus grande faiblesse (ex: Ennui administratif)",
-            
-            "analysis_global": "Analyse psycho-stratégique (3 phrases max). Explique pourquoi tu as structuré la journée ainsi.",
-            "analysis_bio": "Analyse du rythme circadien spécifique à ce profil.",
-            "analysis_social": "Analyse du coût énergétique social (Introversion/Extraversion).",
-            "analysis_fogg": "Analyse comportementale (Dopamine vs Friction) basée sur les 'Blockers' fournis.",
-            
-            "chart_energy": [
-                {{"heure": 6, "niveau": 20}}, ... jusqu'à 23h. (0-100)
-            ],
-            "chart_matrix": [
-                {{"tache": "Nom Tache", "impact": -50}} (Impact négatif = Drain, Positif = Recharge)
-            ],
-            "chart_fogg": [
-                {{"tache": "Nom Tache", "dopamine": 10-100, "friction": 10-100, "importance": 10-100, "zone": "Action/Procrastination/Piège", "description": "Court commentaire"}}
-            ],
-            
-            "planning": [
-                {{
-                    "titre": "Titre Action",
-                    "start_iso": "YYYY-MM-DDTHH:MM:00", (Date de demain par défaut)
-                    "end_iso": "YYYY-MM-DDTHH:MM:00",
-                    "categorie": "Travail/Santé/Admin/DeepWork",
-                    "description": "Consigne tactique précise (ex: 'Téléphone dans l'autre pièce')"
-                }}
-            ]
-        }}
-        """
+        # ... (Ton Mega-Prompt user_prompt ici) ...
+        # Je ne le remets pas pour gagner de la place, garde le tien
+        user_prompt = f"""... TON PROMPT ACTUEL ..."""
 
         try:
-            # 3. Appel à Gemini (Le "vrai" traitement)
+            # 3. Appel à Gemini
+            print("📡 Envoi de la requête à Google...")
             response = model.generate_content(user_prompt)
+            print("📩 Réponse reçue !")
             
+            # DIAGNOSTIC : On affiche la réponse brute dans le terminal
+            print(f"📄 CONTENU BRUT DE L'IA : \n{response.text[:200]}...") 
+
             # 4. Nettoyage et Renvoi
             json_data = clean_and_parse_json(response.text)
             
-            # Petit hack pour s'assurer que les dates du planning sont valides (parfois l'IA met des dates fictives)
-            # On pourrait ajouter ici une logique pour recaler les dates sur "Aujourd'hui" ou "Demain"
-            
+            if "error" in json_data:
+                print(f"❌ Erreur de parsing JSON : {json_data}")
+            else:
+                print("✅ JSON valide généré avec succès.")
+
             return json.dumps(json_data)
 
         except Exception as e:
+            print(f"🔥 CRASH GEMINI : {str(e)}")
             return json.dumps({
                 "error": f"Erreur Gemini : {str(e)}",
                 "planning": [],
-                "analysis_global": "L'IA n'a pas pu traiter la demande. Vérifiez votre clé API ou vos quotas."
+                "analysis_global": f"ERREUR TECHNIQUE : {str(e)}", # Affiché à l'utilisateur
+                "rarity": "Erreur",
+                "archetype": "Hors Ligne"
             })
     
 
