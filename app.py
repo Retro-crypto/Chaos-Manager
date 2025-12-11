@@ -314,12 +314,37 @@ with st.form("psycho_form"):
         """)
     with col_len_sel:
         work_genius = st.radio("Votre zone de génie :", ["✨ Idéateur (Début)", "🔥 Activateur (Milieu)", "🏗️ Finisseur (Fin)"], label_visibility="collapsed")
-
+# --- SECTION CONTEXTE (Routine & Blocages) ---
     st.markdown("---")
-    st.write("#### 3. La Mission")
-    mission = st.text_area("Vos impératifs (Vrac accepté) :", placeholder="Ex: Rendre projet Python, Sport ce soir, Appeler Maman...", height=100)
+    st.write("#### 3. Le Contexte & La Mission")
+    
+    col_input_1, col_input_2 = st.columns(2)
+    
+    with col_input_1:
+        routine = st.text_area(
+            "🔄 Ta Routine Actuelle (Habitudes)", 
+            placeholder="Ex: Lever 7h, Café, Scroll TikTok 1h, Boulot, Sport le soir...", 
+            height=120,
+            help="Décris ta journée type actuelle pour que l'IA identifie les points de friction."
+        )
+        
+    with col_input_2:
+        blockers = st.text_area(
+            "🚧 Analyse de l'Échec (Introspection)", 
+            placeholder="Sois honnête. Ex: 'Je procrastine par peur de mal faire', 'Je suis distrait par les notifs', 'Je commence tout sans rien finir'...", 
+            height=120,
+            help="Question Clé : Qu'est-ce qui t'a empêché de réussir sur ton dernier projet ?"
+        )
+
+    # La Mission (Objectifs du jour)
+    mission = st.text_area(
+        "🎯 Tes Impératifs pour ce Planning", 
+        placeholder="Ex: Rendre projet Python avant 18h, Appeler Maman, Séance de sport (Jambes)...", 
+        height=80
+    )
     
     submitted = st.form_submit_button("🚀 LANCER L'ANALYSE NEURO-CROSS", type="primary", use_container_width=True)
+    
 
 # --- LOGIQUE DE TRAITEMENT ---
 if submitted:
@@ -329,11 +354,13 @@ if submitted:
     else:
         final_scores = {"Ouverture": o_est, "Conscience": c_est, "Extraversion": e_est, "Agréabilité": a_est, "Névrosisme": n_est}
 
-    if not mission:
-        st.warning("Donne-moi au moins une tâche !")
+    # VERIFICATION : On demande au moins une mission OU un blocage pour lancer
+    if not mission and not blockers:
+        st.warning("Donne-moi au moins une mission ou un blocage à analyser !")
     else:
         with st.spinner("Croisement des vecteurs OCEAN x Rubin x Breus..."):
             
+            # MISE A JOUR ICI : On ajoute 'routine' et 'blockers'
             inputs = {
                 "scores": final_scores,
                 "work_style": {
@@ -341,12 +368,15 @@ if submitted:
                     "tendency": tendency,
                     "genius": work_genius
                 },
-                "mission": mission
+                "context": {
+                    "mission": mission,
+                    "routine": routine,   # <--- Nouveau
+                    "blockers": blockers  # <--- Nouveau
+                }
             }
             
             # Appel Backend
             data = json.loads(parse_schedule(inputs))
-            
             # --- RÉSULTATS ---
             # --- DÉBUT DE LA GREFFE V7 (INTERFACE ONGLETS) ---
             st.markdown("---")
