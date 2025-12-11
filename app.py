@@ -472,7 +472,6 @@ if submitted:
             # --- ONGLET 2 : LE BIO-RYTHME ---
             with res_tab2:
                 # ZONE THEORIE (Visible directement)
-                st.markdown("#### 📖 Théorie : La Chronobiologie (Loi de Breus)")
                 st.markdown("""
             ### 📖 Théorie : La Chronobiologie (Loi de Breus)
             **Le Postulat : L'Alignement Circadien**
@@ -521,10 +520,8 @@ if submitted:
                 else:
                     st.warning("⚠️ Données d'énergie non disponibles.")
             # --- ONGLET 3 : LA MATRICE ---
-            # --- ONGLET 3 : LA MATRICE ---
             with res_tab3:
                 # ZONE THEORIE (Visible directement)
-                st.markdown("#### 📖 Théorie : L'Économie de la Batterie Sociale")
                 st.markdown("""
             ### 📖 Théorie : La Dynamique Énergétique (Extraversion)
             **Le Postulat : Le Bilan Métabolique**
