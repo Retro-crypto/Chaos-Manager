@@ -382,9 +382,8 @@ if submitted:
             st.markdown("---")
             
             # Création des 3 onglets de visualisation
-            res_tab1, res_tab2, res_tab3 = st.tabs(["📅 Synthèse & Planning", "⚡ Bio-Rythme (New)", "🧬 Matrice Énergie (New)"])
-            
-            
+            res_tab1, res_tab2, res_tab3, res_tab4 = st.tabs(["📅 Synthèse & Planning", "⚡ Bio-Rythme", "🧬 Matrice Énergie", "⚙️ Mécanique de l'Action"])
+
             # --- ONGLET 1 : L'AFFICHAGE CLASSIQUE ---
             with res_tab1:
                 # ZONE THEORIE (Directement visible, sans expander)
@@ -593,89 +592,89 @@ if submitted:
                 else:
                     st.warning("⚠️ Données matrice non disponibles.")
             # ... Vos onglets existants ...
-res_tab4 = st.tabs(["...","...","...", "⚙️ Mécanique de l'Action"]) # Ajoutez l'onglet
+            res_tab4 = st.tabs(["...","...","...", "⚙️ Mécanique de l'Action"]) # Ajoutez l'onglet
 
-with res_tab4:
-    st.markdown("#### 🧠 Théorie : Le Modèle de Fogg (B=MAT)")
-    st.markdown("""
-            ### 🧠 Théorie : La Physique de l'Action (Modèle B=MAT)
-            **Le Postulat : La Thermodynamique Comportementale**
-            L'inaction (procrastination) n'est pas un défaut moral, c'est une équation mathématique négative. Selon le Dr B.J. Fogg (Stanford), un comportement ($B$) ne se déclenche que si trois variables dépassent simultanément le **Seuil d'Activation**.
-            
-            $$B = M \\times A \\times T$$
-            *(Behavior = Motivation x Ability x Trigger)*
+            with res_tab4:
+                st.markdown("#### 🧠 Théorie : Le Modèle de Fogg (B=MAT)")
+                st.markdown("""
+                        ### 🧠 Théorie : La Physique de l'Action (Modèle B=MAT)
+                        **Le Postulat : La Thermodynamique Comportementale**
+                        L'inaction (procrastination) n'est pas un défaut moral, c'est une équation mathématique négative. Selon le Dr B.J. Fogg (Stanford), un comportement ($B$) ne se déclenche que si trois variables dépassent simultanément le **Seuil d'Activation**.
+                        
+                        $$B = M \\times A \\times T$$
+                        *(Behavior = Motivation x Ability x Trigger)*
 
-            ---
+                        ---
 
-            #### 1. Les Variables de l'Équation
-            *De quoi est composé le carburant de vos actions.*
+                        #### 1. Les Variables de l'Équation
+                        *De quoi est composé le carburant de vos actions.*
 
-            * **🔥 M - La Motivation (L'Axe Y - Dopamine)**
-                * *Définition :* L'anticipation chimique d'une récompense.
-                * *Le Problème :* C'est une variable **volatile**. Elle dépend de votre sommeil, de votre glycémie et de votre humeur. Baser un système sur la motivation est une erreur d'architecture : c'est construire sur du sable.
-            
-            * **🧱 A - La Capacité / Friction (L'Axe X - Coût)**
-                * *Définition :* La "résistance" du matériau. Plus une tâche demande d'effort (cognitif ou physique), plus la "Capacité" baisse.
-                * *La Loi du Moindre Effort :* Le cerveau est un avare cognitif. Entre deux tâches, il choisira toujours celle dont le ratio *Récompense/Effort* est le plus élevé.
-            
-            * **⚡ T - Le Déclencheur (Le Signal)**
-                * *Définition :* L'étincelle. Sans déclencheur (notification, heure précise, objet visible), même une tâche facile et motivante ne sera pas exécutée.
+                        * **🔥 M - La Motivation (L'Axe Y - Dopamine)**
+                            * *Définition :* L'anticipation chimique d'une récompense.
+                            * *Le Problème :* C'est une variable **volatile**. Elle dépend de votre sommeil, de votre glycémie et de votre humeur. Baser un système sur la motivation est une erreur d'architecture : c'est construire sur du sable.
+                        
+                        * **🧱 A - La Capacité / Friction (L'Axe X - Coût)**
+                            * *Définition :* La "résistance" du matériau. Plus une tâche demande d'effort (cognitif ou physique), plus la "Capacité" baisse.
+                            * *La Loi du Moindre Effort :* Le cerveau est un avare cognitif. Entre deux tâches, il choisira toujours celle dont le ratio *Récompense/Effort* est le plus élevé.
+                        
+                        * **⚡ T - Le Déclencheur (Le Signal)**
+                            * *Définition :* L'étincelle. Sans déclencheur (notification, heure précise, objet visible), même une tâche facile et motivante ne sera pas exécutée.
 
-            ---
+                        ---
 
-            #### 2. Topologie de l'Action (Analyse des Zones)
-            *Où se situent vos tâches sur le graphique ?*
+                        #### 2. Topologie de l'Action (Analyse des Zones)
+                        *Où se situent vos tâches sur le graphique ?*
 
-            * 🔴 **La Zone de Procrastination (Friction > Motivation)**
-                * *Le Symptôme :* "Je dois faire mes impôts / Rédiger ce rapport complexe".
-                * *L'Erreur Classique :* Attendre d'avoir la motivation (le "bon moment"). Spoiler : il ne viendra pas.
-                * *Stratégie IA (Méthode Kaizen) :* Puisque l'on ne peut pas contrôler la Motivation (M), on doit **hacker la Friction (A)**. L'IA découpe la tâche monstrueuse en micro-actions ridicules ("Ouvrir le fichier Excel"). Si la friction tend vers 0, l'action devient inévitable.
+                        * 🔴 **La Zone de Procrastination (Friction > Motivation)**
+                            * *Le Symptôme :* "Je dois faire mes impôts / Rédiger ce rapport complexe".
+                            * *L'Erreur Classique :* Attendre d'avoir la motivation (le "bon moment"). Spoiler : il ne viendra pas.
+                            * *Stratégie IA (Méthode Kaizen) :* Puisque l'on ne peut pas contrôler la Motivation (M), on doit **hacker la Friction (A)**. L'IA découpe la tâche monstrueuse en micro-actions ridicules ("Ouvrir le fichier Excel"). Si la friction tend vers 0, l'action devient inévitable.
 
-            * ⚠️ **La Zone de Piège Dopaminergique (Motivation > Friction 0)**
-                * *Le Symptôme :* Scroll infini, Jeux vidéos, Vérification compulsive des mails.
-                * *Le Mécanisme :* Ces apps sont conçues pour avoir une friction nulle (Friction = 0) et une récompense aléatoire forte (Motivation++). Votre cerveau glisse naturellement vers cette pente.
-                * *Stratégie IA (Mur de Friction) :* Il faut artificiellement **augmenter la friction**. (Ex: Mettre le téléphone dans une autre pièce, utiliser des bloqueurs de sites). Ajouter 20 secondes d'effort suffit souvent à briser la boucle.
+                        * ⚠️ **La Zone de Piège Dopaminergique (Motivation > Friction 0)**
+                            * *Le Symptôme :* Scroll infini, Jeux vidéos, Vérification compulsive des mails.
+                            * *Le Mécanisme :* Ces apps sont conçues pour avoir une friction nulle (Friction = 0) et une récompense aléatoire forte (Motivation++). Votre cerveau glisse naturellement vers cette pente.
+                            * *Stratégie IA (Mur de Friction) :* Il faut artificiellement **augmenter la friction**. (Ex: Mettre le téléphone dans une autre pièce, utiliser des bloqueurs de sites). Ajouter 20 secondes d'effort suffit souvent à briser la boucle.
 
-            * 🟢 **La Zone de Flow (L'Équilibre)**
-                * *Le Symptôme :* Immersion totale, perte de la notion du temps.
-                * *La Condition :* Le niveau de compétence (Ability) rencontre parfaitement le niveau du challenge (Motivation). C'est ici que l'ingénierie systémique vise à vous placer.
-            """)
+                        * 🟢 **La Zone de Flow (L'Équilibre)**
+                            * *Le Symptôme :* Immersion totale, perte de la notion du temps.
+                            * *La Condition :* Le niveau de compétence (Ability) rencontre parfaitement le niveau du challenge (Motivation). C'est ici que l'ingénierie systémique vise à vous placer.
+                        """)
 
-    fogg_data = data.get("chart_fogg", [])
-    if fogg_data:
-        df_fogg = pd.DataFrame(fogg_data)
-        
-        # Création du Scatter Plot Avancé
-        fig_fogg = px.scatter(
-            df_fogg, 
-            x="friction", 
-            y="dopamine", 
-            text="tache",
-            size="importance", # Taille de la bulle selon l'importance de la tache
-            color="zone", # Couleur selon la zone (Action/Procrastination)
-            color_discrete_map={"Action": "#00ff00", "Procrastination": "#ff0000", "Piège": "#ffff00"},
-            hover_data=["description"]
-        )
-        
-        # Ajout de la "Ligne d'Action" (Threshold)
-        fig_fogg.add_shape(type="line", x0=0, y0=0, x1=100, y1=100,
-                           line=dict(color="white", width=2, dash="dot"))
-        
-        fig_fogg.update_traces(textposition='top center', marker=dict(opacity=0.8, line=dict(width=1, color='DarkSlateGrey')))
-        fig_fogg.update_layout(
-            xaxis_title="Friction (Difficulté perçue)",
-            yaxis_title="Dopamine (Récompense anticipée)",
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(20,20,20,0.5)",
-            font=dict(color="white"),
-            showlegend=True
-        )
-        
-        st.plotly_chart(fig_fogg, use_container_width=True)
-        
-        st.info(f"💡 **Protocole de Déblocage :** {data.get('analysis_fogg', 'Calcul...')}")
-    else:
-        st.warning("Données Fogg indisponibles.")
+                fogg_data = data.get("chart_fogg", [])
+                if fogg_data:
+                    df_fogg = pd.DataFrame(fogg_data)
+                    
+                    # Création du Scatter Plot Avancé
+                    fig_fogg = px.scatter(
+                        df_fogg, 
+                        x="friction", 
+                        y="dopamine", 
+                        text="tache",
+                        size="importance", # Taille de la bulle selon l'importance de la tache
+                        color="zone", # Couleur selon la zone (Action/Procrastination)
+                        color_discrete_map={"Action": "#00ff00", "Procrastination": "#ff0000", "Piège": "#ffff00"},
+                        hover_data=["description"]
+                    )
+                    
+                    # Ajout de la "Ligne d'Action" (Threshold)
+                    fig_fogg.add_shape(type="line", x0=0, y0=0, x1=100, y1=100,
+                                    line=dict(color="white", width=2, dash="dot"))
+                    
+                    fig_fogg.update_traces(textposition='top center', marker=dict(opacity=0.8, line=dict(width=1, color='DarkSlateGrey')))
+                    fig_fogg.update_layout(
+                        xaxis_title="Friction (Difficulté perçue)",
+                        yaxis_title="Dopamine (Récompense anticipée)",
+                        paper_bgcolor="rgba(0,0,0,0)",
+                        plot_bgcolor="rgba(20,20,20,0.5)",
+                        font=dict(color="white"),
+                        showlegend=True
+                    )
+                    
+                    st.plotly_chart(fig_fogg, use_container_width=True)
+                    
+                    st.info(f"💡 **Protocole de Déblocage :** {data.get('analysis_fogg', 'Calcul...')}")
+                else:
+                    st.warning("Données Fogg indisponibles.")
             # (Ici tu laisses ton Paywall 'locked-section' qui était déjà en bas)
             # --- PAYWALL ---
             st.markdown('<div class="locked-section">', unsafe_allow_html=True)
