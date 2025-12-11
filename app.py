@@ -518,6 +518,7 @@ if submitted:
                     st.plotly_chart(fig_energy, use_container_width=True)
                 else:
                     st.warning("⚠️ Données d'énergie non disponibles.")
+            
             # --- ONGLET 3 : LA MATRICE ---
             with res_tab3:
                 # ZONE THEORIE (Visible directement)
@@ -592,8 +593,6 @@ if submitted:
                 else:
                     st.warning("⚠️ Données matrice non disponibles.")
             # ... Vos onglets existants ...
-            res_tab4 = st.tabs(["...","...","...", "⚙️ Mécanique de l'Action"]) # Ajoutez l'onglet
-
             with res_tab4:
                 st.markdown("#### 🧠 Théorie : Le Modèle de Fogg (B=MAT)")
                 st.markdown("""
