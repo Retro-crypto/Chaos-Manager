@@ -491,39 +491,87 @@ with st.form("psycho_form"):
             > **Diagnostic :** Si vous ressentez une fatigue lourde *avant même* de commencer, c'est que la tâche sollicite votre zone de frustration naturelle.
             """)
 
-# --- SECTION CONTEXTE (Routine & Blocages) ---
+# --- SECTION 3 : LE CIBLAGE STRATÉGIQUE (Remplacement Complet) ---
     st.markdown("---")
-    st.write("#### 3. Le Contexte & La Mission")
-    
-    # CRÉATION DE LA "BOÎTE" (Le Container)
+    st.markdown("#### 3. La War Room : Contexte & Objectifs")
+
+    # CONTENEUR PRINCIPAL
     with st.container(border=True):
-        st.markdown('<div style="margin-bottom: 10px; font-weight:bold; color:#FF4B4B;">📡 Données Opérationnelles</div>', unsafe_allow_html=True)
         
-        # On utilise gap="small" pour resserrer les éléments
-        col_input_1, col_input_2 = st.columns(2, gap="medium")
+        # 1. LE VECTEUR D'INTENSITÉ (PHASE DE VIE)
+        st.markdown('<div style="color:#FF4B4B; font-weight:bold; margin-bottom:10px;">🌡️ Étape 1 : Calibrer l\'Intensité (Phase de Vie)</div>', unsafe_allow_html=True)
+        st.caption("Un planning de temps de paix ne fonctionne pas en temps de guerre. Où en êtes-vous ?")
         
-        with col_input_1:
-            routine = st.text_area(
-                "🔄 Ta Routine Actuelle", 
-                placeholder="Ex: Lever 7h, Café, Scroll TikTok...", 
-                height=120,
-                help="Décris ta journée type."
+        life_phase = st.radio(
+            "Phase de Vie",
+            [
+                "🔥 **War Time (Survie/Deadline)** : Urgence absolue. Je sacrifie le confort pour l'objectif. Sommeil optimisé, zéro distraction, focus unique. C'est un sprint.",
+                "🏗️ **Builder (Construction)** : Création de valeur long terme (Lancer un projet, écrire). Je nécessite des blocs profonds (Deep Work) le matin et de la gestion l'après-midi.",
+                "⚖️ **Maintenance (Équilibre)** : Gestion du quotidien (Salarié, Parents). Je cherche à optimiser le ratio effort/résultat sans m'épuiser. Time-boxing strict 9h-18h.",
+                "🌱 **Recovery (Récupération)** : Post-Burnout ou Vacances. Priorité à la santé mentale et au sommeil. Je veux réduire la charge cognitive au minimum."
+            ],
+            label_visibility="collapsed"
+        )
+        
+        st.markdown("---")
+
+        # 2. LE CIBLAGE (MISSION & TEMPS)
+        st.markdown('<div style="color:#00ff00; font-weight:bold; margin-bottom:10px;">🎯 Étape 2 : Définir la Cible (Mission & Logistique)</div>', unsafe_allow_html=True)
+        
+        c_mission, c_time = st.columns([2, 1], gap="medium")
+        
+        with c_mission:
+            mission = st.text_input(
+                "La North Star (Objectif Unique)", 
+                placeholder="Ex: Terminer la V1 du code Python...",
+                help="Si vous ne deviez faire qu'une seule chose aujourd'hui pour être fier de vous, ce serait quoi ?"
+            )
+        
+        with c_time:
+            time_range = st.slider(
+                "Plage d'Activation",
+                min_value=0, max_value=24, value=(8, 20),
+                format="%dh"
+            )
+            st.caption(f"Amplitude : {time_range[1] - time_range[0]}h de disponibilité.")
+
+        st.markdown("---")
+
+        # 3. LE DIAGNOSTIC DE FRICTION (POURQUOI L'ÉCHEC ?)
+        st.markdown('<div style="color:#4DA6FF; font-weight:bold; margin-bottom:10px;">🚧 Étape 3 : Identifier l\'Ennemi (Frictions)</div>', unsafe_allow_html=True)
+        
+        col_frict_1, col_frict_2 = st.columns(2)
+        
+        with col_frict_1:
+            st.markdown("**Interne (Ce qui vient de vous)**")
+            friction_internal = st.multiselect(
+                "Blocages Internes",
+                [
+                    "⚡ Démarrage (Procrastination)",
+                    "🤯 Brouillard Mental (Fatigue)",
+                    "✨ Perfectionnisme (Peur de finir)",
+                    "🦋 Papillonnage (Manque de Focus)",
+                    "📉 Baisse de Dopamine (Ennui)"
+                ],
+                label_visibility="collapsed"
             )
             
-        with col_input_2:
-            blockers = st.text_area(
-                "🚧 Analyse de l'Échec", 
-                placeholder="Ex: Procrastination, Distractions...", 
-                height=120,
-                help="Pourquoi ça bloque ?"
+        with col_frict_2:
+            st.markdown("**Externe (Ce qui vient des autres)**")
+            friction_external = st.multiselect(
+                "Blocages Externes",
+                [
+                    "🔔 Notifications / Smartphone",
+                    "🗣️ Interruptions (Collègues/Famille)",
+                    "📝 Tâches imprévues",
+                    "🔊 Environnement Bruyant"
+                ],
+                label_visibility="collapsed"
             )
 
-        # La Mission juste en dessous, serrée
-        mission = st.text_area(
-            "🎯 Tes Impératifs (Mission)", 
-            placeholder="Ex: Rendre projet Python avant 18h...", 
-            height=200
-        )
+    # BOUTON D'ACTION
+    st.markdown("<br>", unsafe_allow_html=True)
+    submitted = st.form_submit_button("🚀 GÉNÉRER LE PROTOCOLE TACTIQUE", type="primary", use_container_width=True)
     
     submitted = st.form_submit_button("🚀 LANCER L'ANALYSE NEURO-CROSS", type="primary", use_container_width=True)
     
