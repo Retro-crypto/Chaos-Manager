@@ -1,0 +1,19 @@
+{
+  "rarity": "Légendaire",
+  "archetype": "Architecte du Chaos Structuré",
+  "quote": "L'entropie ne se combat pas par la volonté, mais par le design.",
+  "superpower": "Hyper-Plasticité (Ouverture 79)",
+  "kryptonite": "Atrophie Exécutive (Conscience 17)",
+  "analysis_global": "Votre système actuel est en échec critique...",
+  "analysis_bio": "Le profil 'Dauphin' avec Conscience 17 nécessite...",
+  "analysis_social": "Extraversion 70 + Agréabilité 68...",
+  "analysis_fogg": "Motivation haute (deadline projet)...",
+  "chart_energy": [ {"heure": 10, "niveau": 15}, {"heure": 12, "niveau": 40}, {"heure": 14, "niveau": 70}, {"heure": 16, "niveau": 95}, {"heure": 18, "niveau": 50}, {"heure": 21, "niveau": 80}, {"heure": 24, "niveau": 60} ],
+  "chart_matrix": [ {"tache": "Projet Info (CS)", "impact": 95}, {"tache": "Peinture", "impact": 60}, {"tache": "Dentiste", "impact": 10}, {"tache": "Culpabilité lever tardif", "impact": -80} ],
+  "chart_fogg": [ { "tache": "Deep Work CS (Aprèm)", "dopamine": 80, "friction": 40, "importance": 90, "zone": "Golden Zone", "description": "Alignement parfait..." }, { "tache": "Sport (Réveil)", "dopamine": 60, "friction": 70, "importance": 100, "zone": "Challenge", "description": "Indispensable..." }, { "tache": "Night Ops (Post 21h)", "dopamine": 40, "friction": 60, "importance": 80, "zone": "Action", "description": "Exploitation..." } ],
+  "planning": [
+    { "titre": "Réveil & Hydratation (Pas de négo)", "start_iso": "2025-12-12T10:00:00", "end_iso": "2025-12-12T10:30:00", "categorie": "Activation", "description": "Le lever tardif est acté..." },
+    { "titre": "Activation Cinétique (Sport)", "start_iso": "2025-12-12T10:30:00", "end_iso": "2025-12-12T11:30:00", "categorie": "Physiologie", "description": "Obligatoire..." },
+    { "titre": "DEEP WORK: Architecture Projet CS", "start_iso": "2025-12-12T14:00:00", "end_iso": "2025-12-12T18:00:00", "categorie": "DeepWork", "description": "Votre fenêtre de tir unique..." }
+  ]
+}
