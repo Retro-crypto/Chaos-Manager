@@ -13,3 +13,6 @@ __pycache__/
 #fichier json
 
 credentials.json
+
+.streamlit/secrets.toml
+archives/
