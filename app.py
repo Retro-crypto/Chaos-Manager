@@ -1,1095 +1,1201 @@
 import streamlit as st
 import json
 import pandas as pd
+import textwrap
+import time
 import random
 import plotly.express as px
 import plotly.graph_objects as go # Pour les graphiques avancés
-from backend import parse_schedule, generate_ics_file
+from backend import parse_schedule, generate_ics_file, save_lead_to_gsheet
+STRIPE_LINK = "https://buy.stripe.com/00w7sN5ZW5gp9GggtP0RG00"
+
+# --- INITIALISATION DE LA MÉMOIRE (OBLIGATOIRE) ---
+if 'data' not in st.session_state:
+    st.session_state['data'] = {} # On crée un dictionnaire vide par défaut
+
+
 st.set_page_config(page_title="Chaos Manager V5", page_icon="🧠", layout="wide")
 
-# --- CSS & STYLE ---
+# --- CSS & STYLE (THEME CLAIR "ZEN ARCHITECT") ---
 st.markdown("""
 <style>
     /* --- GENERAL SETTINGS --- */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+    
     .stApp { 
-        background-color: #0e1117; 
+        background-color: #f8f9fa; /* Gris très pâle (Papier) */
         font-family: 'Inter', sans-serif;
+        color: #1a1a1a;
     }
     
-    /* --- LE BOUTON D'ACTION --- */
+    h1, h2, h3, h4, h5, h6 {
+        color: #111;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+    
+    p, div, span {
+        color: #444; /* Gris lecture */
+    }
+
+    /* --- LE BOUTON D'ACTION (Style Stripe/Airbnb) --- */
     .stButton > button {
-        background: linear-gradient(90deg, #FF4B4B 0%, #CE2424 100%);
+        background-color: #111; /* Noir Profond */
         color: white;
         border: none;
-        padding: 15px 30px;
-        font-size: 18px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+        padding: 16px 32px;
+        font-size: 16px;
+        font-weight: 600;
         border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(255, 75, 75, 0.4);
-        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.2s ease;
         width: 100%;
-        border: 1px solid rgba(255,255,255,0.1);
     }
     .stButton > button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(255, 75, 75, 0.6);
-        background: linear-gradient(90deg, #FF6B6B 0%, #E03434 100%);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+        background-color: #333;
+    }
+    .stButton > button:active {
+        transform: scale(0.98);
     }
 
-    /* --- RADIO BUTTONS : GRID FULL WIDTH (Le Fix) --- */
-    
-    /* 1. Le Conteneur Principal : C'est LUI qui décide de la largeur */
+    /* --- RADIO BUTTONS : GRID CARDS (CLEAN) --- */
     div[role="radiogroup"] {
         display: grid !important;
-        /* auto-fit + 1fr = Occupe TOUT l'espace disponible */
         grid-template-columns: 1fr !important;
-        gap: 15px !important;
-        width: 100% !important; /* Force l'étalement total */
+        gap: 12px !important;
+        width: 100% !important;
     }
 
-    /* 2. Les Cartes (Tuiles) */
+    /* Les Cartes (Tuiles) */
     div[role="radiogroup"] > label {
-        background-color: #161924 !important;
-        border: 1px solid #333 !important;
+        background-color: #ffffff !important;
+        border: 1px solid #e0e0e0 !important;
         padding: 20px !important;
-        border-radius: 12px !important;
+        border-radius: 10px !important;
         margin: 0 !important;
         transition: all 0.2s ease !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
         
-        /* Force la carte à remplir sa cellule de grille */
         width: 100% !important; 
         height: 100% !important;
-        min-height: 120px !important; /* Hauteur minimale uniforme */
-        
-        /* Centrage du contenu */
         display: flex !important;
         flex-direction: column !important;
         justify-content: center !important;
     }
     
-    /* 3. Effet Survol */
+    /* Effet Survol */
     div[role="radiogroup"] > label:hover {
-        border-color: #FF4B4B !important;
-        background-color: #1a1d2b !important;
-        transform: translateY(-3px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        z-index: 2;
+        border-color: #111 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05) !important;
     }
 
-    /* 4. Sélection */
+    /* Sélection */
     div[role="radiogroup"] > label[data-checked="true"] {
-        border-color: #FF4B4B !important;
-        background-color: rgba(255, 75, 75, 0.08) !important;
-        box-shadow: 0 0 15px rgba(255, 75, 75, 0.1);
-    }
-
-    /* 5. Typographie */
-    div[role="radiogroup"] label p {
-        font-weight: 800 !important;
-        font-size: 16px !important;
-        color: #fff !important;
-        margin-bottom: 5px !important;
+        background-color: #111 !important; /* Carte devient noire */
+        border-color: #111 !important;
+        color: white !important;
     }
     
-    div[role="radiogroup"] label span {
-        font-size: 12px !important;
-        color: #888 !important;
-        line-height: 1.3 !important;
+    /* Inversion des couleurs du texte quand sélectionné */
+    div[role="radiogroup"] > label[data-checked="true"] p {
+        color: white !important;
+    }
+    div[role="radiogroup"] > label[data-checked="true"] span {
+        color: #ccc !important;
     }
 
-    /* --- AUTRES ELEMENTS --- */
-    .stTextArea textarea {
-        background-color: #161924 !important;
-        border: 1px solid #2b3042 !important;
-        border-radius: 8px !important;
-        color: #e0e0e0 !important;
+    /* Typographie des cartes */
+    div[role="radiogroup"] label p {
+        font-weight: 700 !important;
+        font-size: 15px !important;
+        color: #111 !important;
+        margin-bottom: 4px !important;
     }
-    .stTextArea textarea:focus {
-        border-color: #FF4B4B !important;
-        box-shadow: 0 0 8px rgba(255, 75, 75, 0.2) !important;
+    div[role="radiogroup"] label span {
+        font-size: 13px !important;
+        color: #666 !important;
+        line-height: 1.4 !important;
+    }
+
+    /* --- INPUTS & TEXTAREAS --- */
+    .stTextArea textarea, .stTextInput input {
+        background-color: #ffffff !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 8px !important;
+        color: #111 !important;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.02) !important;
+    }
+    .stTextArea textarea:focus, .stTextInput input:focus {
+        border-color: #111 !important;
+        box-shadow: 0 0 0 2px rgba(0,0,0,0.1) !important;
     }
     .stTextArea label {
-        color: #888 !important;
-        font-size: 12px !important;
+        color: #111 !important;
         font-weight: 600 !important;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+    }
+
+    /* --- BOITES D'INFORMATION (ALERTS) --- */
+    .stAlert {
+        background-color: #fff !important;
+        border: 1px solid #eee !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03) !important;
+        color: #444 !important;
     }
     
+    /* --- CUSTOM CONTAINERS --- */
     [data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: #13151b !important;
-        border: 1px solid #333 !important;
-        border-radius: 10px !important;
-        padding: 20px !important;
-        margin-bottom: 20px;
+        background-color: #ffffff !important;
+        border: 1px solid #e5e5e5 !important;
+        border-radius: 12px !important;
+        padding: 24px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
     }
     
     /* --- ELEMENTS SPECIFIQUES --- */
-    .concept-box { background: linear-gradient(180deg, #13151b 0%, #0e1117 100%); border-left: 4px solid #FF4B4B; padding: 20px; border-radius: 0 12px 12px 0; border: 1px solid #222; margin-bottom:30px; }
-    .profile-example { background-color: #1c202a; padding: 20px; border-radius: 12px; text-align: center; border: 1px solid #333; font-size: 13px; }
-    .tech-badge { background-color: rgba(28, 32, 42, 0.8); border: 1px solid #00ff00; color: #00ff00; padding: 4px 10px; border-radius: 4px; font-family: monospace; font-size: 11px; font-weight: bold; }
+    .concept-box { 
+        background-color: #fff; 
+        border-left: 4px solid #111; 
+        padding: 24px; 
+        border-radius: 0 8px 8px 0; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
+        margin-bottom: 30px; 
+        border: 1px solid #f0f0f0;
+    }
     
-    .rpg-card { background: linear-gradient(145deg, #1e2330 0%, #13151b 100%); border: 1px solid #444; border-radius: 16px; padding: 25px; text-align: center; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    .rpg-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); }
-    .archetype-title { color: #FF4B4B; font-size: 28px; font-weight: 800; text-transform: uppercase; margin-top: 10px; text-shadow: 0 0 20px rgba(255, 75, 75, 0.3); }
+    .profile-example { 
+        background-color: #ffffff; 
+        padding: 20px; 
+        border-radius: 12px; 
+        text-align: center; 
+        border: 1px solid #eaeaea; 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
     
-    .stTabs [data-baseweb="tab-list"] { gap: 10px; }
-    .stTabs [data-baseweb="tab"] { background-color: #161924; border-radius: 4px 4px 0 0; border: 1px solid #333; border-bottom: none; color: #888; padding: 10px 20px; }
-    .stTabs [aria-selected="true"] { background-color: #FF4B4B !important; color: white !important; font-weight: bold; }
+    .tech-badge { 
+        background-color: #f0f2f6; 
+        border: 1px solid #d1d5db; 
+        color: #4b5563; 
+        padding: 4px 10px; 
+        border-radius: 4px; 
+        font-family: monospace; 
+        font-size: 11px; 
+        font-weight: bold; 
+    }
+    
+    .rpg-card { 
+        background: #ffffff; 
+        border: 1px solid #eee; 
+        border-radius: 16px; 
+        padding: 25px; 
+        text-align: center; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+    }
+    
+    .archetype-title { 
+        color: #111; 
+        font-size: 28px; 
+        font-weight: 900; 
+        text-transform: uppercase; 
+        margin-top: 10px; 
+        letter-spacing: -1px;
+    }
+/* --- MODIFICATION UNIQUEMENT BARRE GAUCHE & HAUT --- */
 
-    .blur-text { filter: blur(6px); user-select: none; color: #666; opacity: 0.6; }
-    .locked-section { border: 1px dashed #FF4B4B; padding: 30px; border-radius: 16px; background: rgba(255, 75, 75, 0.05); text-align: center; margin-top: 30px; }
+    /* 1. La Barre Latérale (Sidebar) en BEIGE */
+    section[data-testid="stSidebar"] {
+        background-color: #F5F1E6 !important; /* Beige "Parchemin" doux */
+        border-right: 1px solid #E6E2D3 !important; /* Bordure discrète */
+    }
+    
+    /* On s'assure que le texte dans le beige reste bien lisible (Gris foncé) */
+    section[data-testid="stSidebar"] * {
+        color: #2c2c2c !important;
+    }
 
+    /* 2. La Barre du Haut (Header) pour virer le noir/blanc moche */
+    header[data-testid="stHeader"] {
+        background-color: transparent !important;
+    }
+    /* --- TABS --- */
+    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
+    .stTabs [data-baseweb="tab"] { 
+        background-color: transparent; 
+        border-radius: 4px; 
+        color: #666; 
+        font-weight: 500;
+        border: none;
+    }
+    .stTabs [aria-selected="true"] { 
+        background-color: #fff !important; 
+        color: #111 !important; 
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        border-bottom: 2px solid #111;
+    }
+    
+    /* --- Paywall Teaser Light --- */
+    .teaser-box {
+        background-color: white;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        padding: 25px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    }
+
+    hr { border-color: #eee !important; }
+/* LIGNE DE SÉPARATION ÉLÉGANTE */
+    .section-divider {
+        margin-top: 60px;       /* Espace au-dessus */
+        margin-bottom: 60px;    /* Espace en-dessous */
+        border: 0;
+        border-top: 1px solid #d1d5db; /* Trait gris "pro" */
+    }
+    
+
+    /* Pour éviter que les titres dans les cadres ne collent trop au bord haut */
+    .section-frame > h1:first-child, 
+    .section-frame > h2:first-child, 
+    .section-frame > h3:first-child, 
+    .section-frame > h4:first-child,
+    .section-frame > .stMarkdown:first-child h5 {
+         margin-top: 0 !important;
+    }
+    /* --- STYLE STYLE 16PERSONALITIES --- */
+
+    .main-title {
+        text-align: center;
+        font-size: 3rem !important; /* Très gros */
+        font-weight: 800 !important;
+        color: #1a1a1a !important;
+        margin-bottom: 10px !important;
+    }
+
+    /* Le Sous-titre centré */
+    .subtitle {
+        text-align: center;
+        font-size: 1.2rem !important;
+        color: #666 !important;
+        margin-bottom: 50px !important;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Les Cartes "Étapes" */
+    .step-card {
+        background-color: #FFFFFF;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 30px 20px;
+        text-align: center;
+        height: 100%; /* Pour qu'elles aient la même hauteur */
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .step-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(46, 125, 50, 0.15); /* Ombre verte au survol */
+        border-color: #2E7D32;
+    }
+
+    /* Le Badge "Étape 1" */
+    .step-badge {
+        background-color: #E8F5E9; /* Vert très clair */
+        color: #2E7D32; /* Vert sapin */
+        font-weight: 700;
+        font-size: 0.8rem;
+        padding: 5px 10px;
+        border-radius: 20px;
+        display: inline-block;
+        margin-bottom: 15px;
+    }
+
+    /* L'emoji/Icone */
+    .step-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        display: block;
+    }
+
+    /* Titre de la carte */
+    .step-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #1a1a1a;
+        margin-bottom: 10px;
+    }
+
+    /* Texte de la carte */
+    .step-desc {
+        font-size: 0.9rem;
+        color: #666;
+        line-height: 1.5;
+    }
+       
+    /* --- STYLE TIMELINE PLANNING --- */
+    .timeline-row {
+        display: flex;
+        margin-bottom: 20px;
+        align-items: flex-start;
+    }
+
+    .time-col {
+        width: 60px;
+        font-weight: 700;
+        color: #2E7D32; /* Ton Vert */
+        font-size: 14px;
+        padding-top: 15px; /* Pour aligner avec la carte */
+    }
+
+    .card-col {
+        flex-grow: 1;
+        background: #ffffff;
+        border-left: 4px solid #2E7D32; /* La barre de couleur à gauche */
+        border-radius: 0 12px 12px 0; /* Arrondi seulement à droite */
+        padding: 15px 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        border: 1px solid #f0f0f0;
+    }
+
+    .card-title {
+        font-weight: 700;
+        color: #111;
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+
+    /* LE FLOU MAGIQUE */
+    .blur-content {
+        color: #666;
+        font-size: 14px;
+        filter: blur(5px); /* C'est ça qui cache le secret */
+        user-select: none; /* Empêche de sélectionner le texte pour tricher */
+        opacity: 0.7;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# --- SIDEBAR ---
-with st.sidebar:
-    st.header("🧠 Chaos Manager")
-    st.caption("v5.1 (Stable)")
-    st.markdown('<div class="tech-badge">⚡ CORE: GEMINI 3.0 PRO</div>', unsafe_allow_html=True)
-    st.markdown('<div class="tech-badge">🔐 PROMPTS: PROPRIETARY</div>', unsafe_allow_html=True)
-    st.markdown("---")
-    st.info("💡 **Science du Prompting**\nChaque planning est généré par une injection de prompt unique, calculée selon vos vecteurs de personnalité OCEAN.")
-
-# --- HEADER & PÉDAGOGIE ---
-st.title("🧠 Chaos Manager : Expert Edition")
-st.markdown("### L'ingénierie IA au service de ton neuro-type.")
-
-# --- L'ARGUMENTAIRE SCIENTIFIQUE (Visible & Direct) ---
 st.markdown("""
-<div class="concept-box">
-    <b>Pourquoi les agendas classiques échouent pour 48% des gens ?</b><br><br>
-    Parce qu'ils imposent une structure unique à des cerveaux différents. 
-    Notre algorithme repose sur une approche scientifique double :
-    <br><br>
-    1. 🧬 <b>Le Modèle Big Five (OCEAN) :</b> Nous ne devinons pas qui vous êtes. Nous calibrons l'IA sur vos 5 traits de personnalité fondamentaux (Ouverture, Conscience, Extraversion, Agréabilité, Névrosisme).
-    <br><br>
-    2. 🤖 <b>Le "Psychometric Prompt Engineering" :</b> C'est notre innovation majeure. Contrairement à ChatGPT qui utilise un ton générique, notre système sélectionne dynamiquement des <i>System Instructions</i> secrètes. 
-    <br>
-    <i>Exemple : Si vous êtes détecté "Faible Discipline / Haute Impulsion", l'IA n'essaiera pas de vous faire lever à 5h du matin. Elle activera le protocole "Dopamine Sprint" pour maximiser votre hyperfocus.</i>
+<style>
+.hero-card{
+  background:#fff;
+  border:1px solid #e0e0e0;
+  border-radius:16px;
+  padding:40px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.05);
+  margin-bottom:30px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+# 1. TITRE & ACCROCHE
+
+
+st.markdown("""
+<div style="text-align: center; max-width: 850px; margin: 0 auto; margin-bottom: 50px; margin-top: 20px;">
+
+<h1 style="color: #111; font-weight: 900; font-size: 42px; margin: 0; line-height: 1.2;">
+Votre cerveau n'est pas buggé.
+</h1>
+<h2 style="color: #2E7D32; font-weight: 600; font-size: 32px; margin-top: 5px; margin-bottom: 40px;">
+Il est juste mal réglé.
+</h2>
+
+<div style="text-align: left; background-color: #FFFFFF; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e0e0e0;">
+
+<p style="font-size: 18px; font-weight: 500; color: #444; margin-bottom: 20px; border-left: 4px solid #2E7D32; padding-left: 20px; line-height: 1.5;">
+🤯 Avez-vous 10 nouvelles idées par semaine, mais aucune terminée à la fin du mois ?
+</p>
+
+<p style="font-size: 18px; font-weight: 500; color: #444; margin-bottom: 20px; border-left: 4px solid #2E7D32; padding-left: 20px; line-height: 1.5;">
+⚡ Êtes-vous capable d'apprendre n'importe quoi en 24h, mais paralysé par l'ennui dès que ça devient répétitif ?
+</p>
+
+<p style="font-size: 18px; font-weight: 500; color: #444; margin-bottom: 0; border-left: 4px solid #2E7D32; padding-left: 20px; line-height: 1.5;">
+🗣️ Vous dit-on souvent <i>"Tu as du potentiel"</i> alors que vous avez l'impression de faire du surplace ?
+</p>
+
+</div>
+
 </div>
 """, unsafe_allow_html=True)
 
-st.write("👀 **Visualisez l'impact du Prompting Adaptatif sur 2 profils opposés :**")
 
-# COLONNES COMPACTES
-c1, c2, c3 = st.columns([1, 0.15, 1])
+# 2. LES 3 ÉTAPES (GRID)
+col1, col2, col3 = st.columns(3, gap="medium")
 
-with c1:
+with col1:
     st.markdown("""
-    <div class="profile-example">
-        <strong style="font-size:16px;">👤 Profil A : "Le Soldat"</strong><br>
-        <span style="color:#aaa;">(Haute Discipline, Basse Ouverture)</span>
-        <hr style="margin:10px 0; border-color:#444;">
-        <p style="color:#aaffaa; font-weight:bold;">✅ Stratégie IA générée :</p>
-        <ul style="text-align:left; padding-left:20px; margin-bottom:5px;">
-            <li>Planning linéaire (9h-18h)</li>
-            <li>Pauses fixes de 15 min</li>
-            <li>Objectif : Constance</li>
-        </ul>
-        <i style="color:#666;">-> L'IA agit comme un "Architecte".</i>
+    <div class="step-card">
+        <span class="step-badge">ÉTAPE 1</span>
+        <span class="step-icon">🧩</span>
+        <div class="step-title">Le Profilage</div>
+        <div class="step-desc">
+            Répondez à 5 curseurs simples pour définir votre mécanique mentale (OCEAN, Stress, Énergie).
+        </div>
     </div>
     """, unsafe_allow_html=True)
-    
-with c2:
-    st.markdown('<div class="versus">VS</div>', unsafe_allow_html=True)
-    
-with c3:
+
+with col2:
     st.markdown("""
-    <div class="profile-example">
-        <strong style="font-size:16px;">👤 Profil B : "L'Artiste"</strong><br>
-        <span style="color:#aaa;">(Haute Impulsion, Basse Discipline)</span>
-        <hr style="margin:10px 0; border-color:#444;">
-        <p style="color:#ffaaaa; font-weight:bold;">✅ Stratégie IA générée :</p>
-        <ul style="text-align:left; padding-left:20px; margin-bottom:5px;">
-            <li>Blocs "Deep Work" de 4h</li>
-            <li>Zéro contrainte le matin</li>
-            <li>Objectif : Intensité</li>
-        </ul>
-        <i style="color:#666;">-> L'IA agit comme un "Coach de Sprint".</i>
+    <div class="step-card">
+        <span class="step-badge">ÉTAPE 2</span>
+        <span class="step-icon">🧬</span>
+        <div class="step-title">L'Analyse IA</div>
+        <div class="step-desc">
+            Gemini croise vos données avec les neurosciences pour identifier vos leviers de performance.
+        </div>
     </div>
     """, unsafe_allow_html=True)
+
+with col3:
+    st.markdown("""
+    <div class="step-card">
+        <span class="step-badge">ÉTAPE 3</span>
+        <span class="step-icon">🚀</span>
+        <div class="step-title">Le Protocole</div>
+        <div class="step-desc">
+            Obtenez votre emploi du temps "anti-procrastination" et vos hacks cognitifs personnalisés.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# Espace pour respirer avant le formulaire
+st.markdown("<br><br>", unsafe_allow_html=True)
+
+
+    
 # --- FORMULAIRE ---
-st.markdown("<br>", unsafe_allow_html=True)
-st.markdown("##### Remplis ce formulaire. L'IA va sélectionner les 'Secret Prompts' adaptés à tes scores.")
-
-
-
-
-with st.form("psycho_form"):
+with st.container(border=False):
+    st.markdown("<br>", unsafe_allow_html=True)
     
-    # --- BLOC THEORIE : OCEAN & METABOLISME DU TRAVAIL ---
-    
-    # 1. LE POSTULAT SCIENTIFIQUE
-    with st.container(border=True):
-        st.markdown('<div style="color:#00ff00; font-weight:bold; margin-bottom:10px;">🧪 1. Le "Hardware" Cognitif (Big Five vs MBTI)</div>', unsafe_allow_html=True)
-        
-        c_theo, c_eq = st.columns([2, 1], gap="large")
-        
-        with c_theo:
-            st.markdown("""
-            **Pourquoi le MBTI ne suffit pas :**
-            Le MBTI vous met dans des "boîtes" (ex: INTJ). La science (Big Five/OCEAN) vous place sur des **spectres continus**. 
-            
-            Un agenda échoue souvent non pas par manque de volonté, mais par **Dissonance Cognitive** : vous essayez d'appliquer une structure rigide (Haute Conscience) à un cerveau divergent (Haute Ouverture).
-            
-            **Notre Approche :**
-            Nous ne jugeons pas votre personnalité. Nous mesurons vos **Coûts Cognitifs** pour aligner la méthode sur votre biologie.
-            """)
-        
-        with c_eq:
-            # On remplace la division illogique par une soustraction (Distance/Écart)
-            st.latex(r"Friction = | Cerveau - Agenda |")
-            st.caption("L'épuisement vient de l'écart (Δ) entre votre nature et vos tâches.")
 
-    # 2. LES 3 VECTEURS D'IMPACT SUR LE TRAVAIL
-    with st.container(border=True):
-        st.markdown('<div style="color:#FF4B4B; font-weight:bold; margin-bottom:15px;">⚙️ 2. Comment vos traits dictent votre Planning</div>', unsafe_allow_html=True)
+    with st.form("psycho_form"):
         
-        col_struct, col_social, col_stress = st.columns(3, gap="medium")
-        
-        # --- COLONNE 1 : STRUCTURE ---
-        with col_struct:
-            st.markdown("#### 📐 Input (O + C)")
-            st.caption("Traitement de l'Information")
-            st.markdown("""
-            **Le Conflit : Innovation vs Rigueur**
-            
-            Si votre **Ouverture (O)** est élevée, la routine tue votre productivité car vous avez besoin de nouveauté. À l'inverse, une **Conscience (C)** forte exige des plans détaillés car l'improvisation génère de l'angoisse.
-            
-            **👉 Impact Agenda :** L'IA arbitrera dynamiquement pour générer soit des blocs séquentiels rigides (Mode Architecte), soit des sprints aléatoires (Mode Chaos).
-            """)
+        # CRÉATION DES 7 ONGLETS (Nouvelle structure)
+        tab_ocean, tab_chrono, tab_archi, tab_genius, tab_invest, tab_mode, tab_input = st.tabs([
+            "1. 🧠 Personnalité", 
+            "2. 🦁 Chronobiologie", 
+            "3. 📐 Architecture", 
+            "4. ⚙️ Type d'Effort", 
+            "5. 🎯 Vos ambitions",
+            "6. 🎯 Votre mode de vie",
+            "7. 📝 Le Vortex"       
+        ])
 
-        # --- COLONNE 2 : ÉNERGIE ---
-        with col_social:
-            st.markdown("#### ⚡ Fuel (E + A)")
-            st.caption("Dynamique d'Interaction")
-            st.markdown("""
-            **Le Conflit : Groupe vs Solo**
+        # ==========================================================================
+        # ONGLET 1 : MODULE 1 (PROFIL NEURO)
+        # ==========================================================================
+        with tab_ocean:
             
-            Une **Extraversion (E)** élevée signifie que le silence vous draine et que vous rechargez vos batteries en réunion. Cependant, une haute **Agréabilité (A)** pose un risque opérationnel : la difficulté à dire non cannibalise votre temps de travail.
             
-            **👉 Impact Agenda :** L'IA placera les tâches collaboratives sur vos pics d'énergie et verrouillera des créneaux "Forteresse" pour protéger votre concentration.
-            """)
+            # LES SLIDERS (INPUTS)
+            col_brain, col_heart = st.columns(2, gap="medium")
 
-        # --- COLONNE 3 : RÉSILIENCE ---
-        with col_stress:
-            st.markdown("#### 🌪️ Sécurité (N)")
-            st.caption("Gestion de la Charge")
-            st.markdown("""
-            **Le Conflit : Vigilance vs Calme**
-            
-            Un **Névrosisme (N)** élevé implique une forte sensibilité au stress (Cortisol) : une erreur mineure ou un imprévu peut paralyser votre journée. Un profil bas (Stoïque) restera hermétique à la pression.
-            
-            **👉 Impact Agenda :** Pour les profils sensibles, le système injectera impérativement des "Buffers" (pauses de sécurité) entre les tâches lourdes pour éviter la surchauffe.
-            """)
-    
-    # --- SECTION UNIQUE : CALIBRATION (FUSION TAB 1 & 2) ---
-    
-    st.markdown("---")
-    st.markdown("#### 1. Calibration Neuro-Psychologique")
-    
-    st.info("""
-    ℹ️ **Protocole de Saisie :** Si vous avez vos scores OCEAN officiels, reportez-les. 
-    Sinon, ajustez les curseurs selon votre **ressenti honnête**. Il n'y a pas de "bon" score, seulement un alignement nécessaire.
-    """)
 
-    # Layout en 2 colonnes
-    col_brain, col_heart = st.columns(2, gap="medium")
+            with col_brain:
+                with st.container(border=True):
+                    st.markdown("### **1. Votre rapport au changement ?**")
+                    # Plus d'explication texte, juste l'échelle visuelle
+                    o_score = st.slider("O", 0, 100, 50, key="slider_o", label_visibility="collapsed")
+                    st.markdown('<div style="font-size:12px; color:#555; display:flex; justify-content:space-between;"><span>J\'aime la Routine</span><span>J\'ai besoin de Nouveauté</span></div>', unsafe_allow_html=True)
 
-    # --- COLONNE GAUCHE : TRAITEMENT INFO ---
-    with col_brain:
-        st.markdown("##### 🧠 Le Cerveau (Traitement de l'Info)")
-        
-        # O - OUVERTURE
-        with st.container(border=True):
-            st.markdown("**🌊 1. Ouverture (O)**")
+                with st.container(border=True):
+                    st.markdown("### **2. Votre mode d'organisation ?**")
+                    c_score = st.slider("C", 0, 100, 50, key="slider_c", label_visibility="collapsed")
+                    st.markdown('<div style="font-size:12px; color:#555; display:flex; justify-content:space-between;"><span>Improvisation / Feeling</span><span>Planification / Carré</span></div>', unsafe_allow_html=True)
+
+                with st.container(border=True):
+                    st.markdown("### **3. Comment rechargez-vous vos batteries ?**")
+                    e_score = st.slider("E", 0, 100, 50, key="slider_e", label_visibility="collapsed")
+                    st.markdown('<div style="font-size:12px; color:#555; display:flex; justify-content:space-between;"><span>Seul (Solitude)</span><span>Avec des gens (Groupe)</span></div>', unsafe_allow_html=True)
+
+            with col_heart:
+                with st.container(border=True):
+                    st.markdown("### **4. Votre attitude face au désaccord ?**")
+                    a_score = st.slider("A", 0, 100, 50, key="slider_a", label_visibility="collapsed")
+                    st.markdown('<div style="font-size:12px; color:#555; display:flex; justify-content:space-between;"><span>Direct & Franc (Le résultat compte)</span><span>Consensuel (L\'humain compte)</span></div>', unsafe_allow_html=True)
+
+                with st.container(border=True):
+                    st.markdown("### **5. Votre gestion du stress ?**")
+                    n_score = st.slider("N", 0, 100, 50, key="slider_n", label_visibility="collapsed")
+                    st.markdown('<div style="font-size:12px; color:#555; display:flex; justify-content:space-between;"><span>Imperméable / Zen</span><span>Sensible / Inquiet</span></div>', unsafe_allow_html=True)
+        # ==========================================================================
+        # ONGLET 2 : MODULE 2 (CHRONOTYPE)
+        # ==========================================================================
+            
+        with tab_chrono:
+            # DANS L'ONGLET CHRONOBIOLOGIE
+            # --- CSS ROBUSTE (CARTES CLIQUABLES) ---
+            # --- CSS CORRIGÉ (ALIGNEMENT GAUCHE STRICT) ---
             st.markdown("""
-            <div style="font-size:14px; line-height:1.4; color:#ddd; margin-bottom:10px;">
-            Ce trait mesure votre appétit pour l'abstraction. Un score élevé indique un besoin vital de nouveauté intellectuelle (ex: tester un nouvel outil chaque semaine). Un score bas révèle une préférence pour les méthodes éprouvées et l'efficacité pragmatique.
-            </div>
+            <style>
+            /* 1. La boite globale (La Carte) */
+            div[role="radiogroup"] > label {
+                background-color: #f8f9fa;
+                padding: 15px;
+                border-radius: 10px;
+                border: 1px solid #e0e0e0;
+                margin-bottom: 10px;
+                width: 100%;
+                
+                /* C'est ici que ça se joue : Flexbox horizontal aligné à gauche */
+                display: flex !important;
+                flex-direction: row !important;
+                justify-content: flex-start !important; /* FORCE GAUCHE */
+                align-items: center !important;         /* Centre verticalement */
+                
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            /* 2. Effet au survol */
+            div[role="radiogroup"] > label:hover {
+                background-color: #ffffff;
+                border-color: #111;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+
+            /* 3. Le petit rond (Radio) */
+            div[role="radiogroup"] label > div:first-child {
+                margin-right: 15px !important; /* Espace entre le rond et le texte */
+            }
+
+            /* 4. Le texte */
+            div[role="radiogroup"] label > div:last-child {
+                text-align: left !important; /* Force le texte à gauche */
+                width: 100%;
+            }
+            </style>
             """, unsafe_allow_html=True)
-            o_score = st.slider("O", 0, 100, 50, key="slider_o", label_visibility="collapsed")
-            st.markdown('<div style="font-size:11px; color:#888; display:flex; justify-content:space-between;"><span>🛡️ Pragmatique</span><span>Explorateur 🚀</span></div>', unsafe_allow_html=True)
 
-        # C - CONSCIENCE
-        with st.container(border=True):
-            st.markdown("**📐 2. Conscience (C)**")
-            st.markdown("""
-            <div style="font-size:14px; line-height:1.4; color:#ddd; margin-bottom:10px;">
-            C'est le métronome de votre autodiscipline. Une haute conscience se traduit par une planification millimétrée (ex: préparer sa "To-Do" la veille). Une conscience basse fonctionne à l'impulsion et brille dans l'urgence, mais déteste les structures rigides.
-            </div>
-            """, unsafe_allow_html=True)
-            c_score = st.slider("C", 0, 100, 50, key="slider_c", label_visibility="collapsed")
-            st.markdown('<div style="font-size:11px; color:#888; display:flex; justify-content:space-between;"><span>🎨 Spontané</span><span>Architecte 🏗️</span></div>', unsafe_allow_html=True)
+            # --- LE CONTENU ---
+            st.markdown("### ⏰ Quel est votre rythme naturel ?")
 
-        # E - EXTRAVERSION
-        with st.container(border=True):
-            st.markdown("**⚡ 3. Extraversion (E)**")
-            st.markdown("""
-            <div style="font-size:14px; line-height:1.4; color:#ddd; margin-bottom:10px;">
-            Il s'agit de votre système de recharge énergétique. Pour un extraverti, l'interaction sociale est un carburant qui stimule la réflexion. Pour un introverti, le monde extérieur est un coût : l'isolement est nécessaire pour régénérer ses batteries mentales.
-            </div>
-            """, unsafe_allow_html=True)
-            e_score = st.slider("E", 0, 100, 50, key="slider_e", label_visibility="collapsed")
-            st.markdown('<div style="font-size:11px; color:#888; display:flex; justify-content:space-between;"><span>🔋 Deep Worker</span><span>Connecteur 🗣️</span></div>', unsafe_allow_html=True)
+            chronotype_input = st.radio(
+                "Chronotype",
+                [
+                    "**Matinal** : Réveil naturel avant l'heure. Productif le matin, fatigué le soir.",
+                    "**Intermédiaire** : Besoin de 8h fixes. Performant en horaires de bureau (9h-18h).",
+                    "**Tardif** : Brouillard matinal. Le cerveau s'allume tard. Créatif la nuit.",
+                    "**Irrégulier** : Sommeil haché. Énergie imprévisible. Souvent fatigué."
+                ],
+                label_visibility="collapsed"
+            )
 
-    # --- COLONNE DROITE : GESTION EMOTION ---
-    with col_heart:
-        st.markdown("##### ❤️ Le Coeur (Régulation)")
+            # Extraction propre
+            chronotype = chronotype_input.split("**")[1].strip()
 
-        # A - AGREABILITÉ
-        with st.container(border=True):
-            st.markdown("**🤝 4. Agréabilité (A)**")
-            st.markdown("""
-            <div style="font-size:14px; line-height:1.4; color:#ddd; margin-bottom:10px;">
-            Ce curseur définit votre rapport à la négociation. Une forte agréabilité privilégie l'harmonie du groupe et le consensus (ex: dire oui pour aider). Un score faible signale un esprit de compétition froid, capable de trancher dans le vif sans émotion.
-            </div>
-            """, unsafe_allow_html=True)
-            a_score = st.slider("A", 0, 100, 50, key="slider_a", label_visibility="collapsed")
-            st.markdown('<div style="font-size:11px; color:#888; display:flex; justify-content:space-between;"><span>⚔️ Challenger</span><span>Diplomate 🕊️</span></div>', unsafe_allow_html=True)
-
-        # N - NÉVROSISME
-        with st.container(border=True):
-            st.markdown("**🌪️ 5. Névrosisme (N)**")
-            st.markdown("""
-            <div style="font-size:14px; line-height:1.4; color:#ddd; margin-bottom:10px;">
-            C'est votre thermostat de gestion du stress. Un profil "Sentinelle" (score élevé) anticipe le pire et détecte la moindre erreur, ce qui coûte cher en énergie. Un profil "Stoïque" reste imperméable à la pression, conservant son sang-froid même dans le chaos.
-            </div>
-            """, unsafe_allow_html=True)
-            n_score = st.slider("N", 0, 100, 50, key="slider_n", label_visibility="collapsed")
-            st.markdown('<div style="font-size:11px; color:#888; display:flex; justify-content:space-between;"><span>🗿 Stoïque</span><span>Sentinelle 🚨</span></div>', unsafe_allow_html=True)
-
-
-
-
-    # --- DEBUT DU BLOC : CALIBRATION SOFTWARE ---
-    st.markdown("---")
-    st.markdown("#### 2. Calibration du 'Software' (Mécanique de Travail)")
-    
-    # --- MODULE 1 : RYTHME CIRCADIEN ---
-    with st.container(border=True):
-        st.markdown('<div style="color:#4DA6FF; font-weight:bold; font-size:16px; margin-bottom:15px;">🦁 Module 1 : Synchronisation (Biorythme)</div>', unsafe_allow_html=True)
-        
-        # LAYOUT : 1/3 (Choix) vs 2/3 (Théorie)
-        c_input, c_theory = st.columns([1, 2], gap="large")
-        
-        with c_input:
-            st.markdown("**SÉLECTION DU PROFIL**")
-            st.caption("Identifiez votre phénotype selon votre courbe d'énergie naturelle.")
             
-            chronotype = st.radio(
-            "Chronotype", 
-            [
-                "🦁 **Lion (Matin)** : Ce profil se caractérise par un pic de cortisol très précoce vers 6h du matin, entraînant une performance linéaire décroissante qui rend tout travail complexe inefficace après 15h.",
-                "🐻 **Ours (Solaire)** : Ce profil reste strictement synchronisé sur le cycle solaire, avec un pic de vigilance maximal situé entre 10h et 14h nécessitant une nuit complète de 8h de sommeil monophasique.",
-                "🐺 **Loup (Soir)** : Ce profil subit une phase biologique retardée qui provoque une lourde inertie matinale, décalant son pic cognitif et créatif vers la plage horaire de 17h à minuit.",
-                "🐬 **Dauphin (Chaos)** : Ce profil présente une architecture de sommeil fragmentée couplée à un cortisol chroniquement élevé, l'obligeant à exploiter des fenêtres d'efficacité erratiques et imprévisibles."
-            ], 
+        
+            
+
+        # ==========================================================================
+        # ONGLET 3 : MODULE 3 (ARCHITECTURE)
+        # ==========================================================================
+        with tab_archi:
+            st.markdown("### Quelle est votre manière de penser ?")
+            c_input, c_theory = st.columns([1.5, 1], gap="large")
+            with c_input:
+                
+                arch_type = st.radio(
+                    "Architecture", 
+                    [
+                        "🛠️ **Deep Work (Logique)**\nCode, Rédaction, Analyse. J'ai besoin de silence total et de 0 distraction. Tolérance zéro au bruit.",
+                        "⚖️ **Social (Humain)**\nRéunions, Appels, Négociation. Je dois utiliser mon intelligence émotionnelle. Le bruit ne me dérange pas.",
+                        "🌀 **Stratégie (Vision)**\nConnecter des idées, brainstormer, planifier. J'ai besoin de recul et de marcher."
+                    ], 
+                    label_visibility="collapsed"
+                )
+
+        # ==========================================================================
+        # ONGLET 4 : MODULE 4 (GENIUS)
+        # ==========================================================================
+
+        
+        with tab_genius:
+            st.markdown("### Comment travaillez-vous ?")
+            c_input, c_theory = st.columns([1.5, 1], gap="large")
+            with c_input:
+                
+                work_genius = st.radio(
+                    "Génie", 
+                    [
+                        "✨ **Syndrôme de la page Blanche : **\nJ'ai plein d'idées mais j'ai du mal à commencer.",
+                        "🔥 **Le Ventre Mou : **\nJe commence souvent fort, mais dès que ça devient ennuyeux, j'ai du mal à persévérer",
+                        "🏗️ **La Finition : **\nJe fais souvent le plus gros du travail , mais les derniers détails m'angoissent."
+                    ], 
+                    label_visibility="collapsed"
+                )
+
+        # ==========================================================================
+        # ONGLET 5 : MODULE 5 (INVESTISSEMENT)
+        # ==========================================================================
+        with tab_invest:
+            st.markdown("### A quel point comptez-vous travailler pour vos projets ?")
+            c_life_input, c_life_theory = st.columns([1.5, 1], gap="large")
+            with c_life_input:
+                life_phase = st.radio("Phase", [
+                "🔥 **Phase de sprint : ** Deadline imminente, surcharge temporaire acceptée",
+                "🏗️ **Construction lente : ** Projet de fond, besoin de blocs longs et stables",
+                "⚖️ **Rythme tranquille : ** Maintenance, gestion des flux, équilibre",
+                "🌱 **Regénération : ** Post-burnout, priorité à la dette de sommeil"
+                ])
+            
+    # ==========================================================================
+    # ONGLET 6 : MODULE 6 (MODE DE VIE)
+    # ==========================================================================
+        with tab_mode:
+                
+            c_life_input, c_life_theory = st.columns([1.5, 1], gap="large")
+            
+            with c_life_input:
+            
+                user_status = st.radio("Situation", [
+                "🎓 **Étudiant** (Horaires flous, charge de révision, examens)",
+                "💼 **Salarié / Cadre** (Horaires imposés, réunions, hiérarchie)",
+                "🚀 **Freelance / Entrepreneur** (Liberté totale, risque de chaos)",
+                "🏠 **Parent / Foyer** (Temps fragmenté, charge mentale)"
+            ])
+    # ==========================================================================
+    # ONGLET 7 : LES FACTEURS FREINANTS
+    # ==========================================================================
+    with tab_input:
+
+        c_frict_input, c_frict_theo = st.columns([2, 1], gap="large")
+        
+        with c_frict_input:
+            # INTERNE
+            st.markdown("**👹 Sabotage Interne (Vous)**")
+            friction_internal = st.text_area(
+                "Interne", 
+                placeholder="Ex: Je suis fatigué, j'ai peur de commencer, je m'ennuie...", 
+                height=100, 
+                label_visibility="collapsed", 
+                key="frict_int"
+            )
+            
+            # EXTERNE
+            st.markdown("**🔊 Sabotage Externe (Le Monde)**")
+            friction_external = st.text_area(
+                "Externe", 
+                placeholder="Ex: Travaux bruyants, téléphone qui sonne, enfants...", 
+                height=100, 
+                label_visibility="collapsed", 
+                key="frict_ext"
+            )
+            
+        with c_frict_theo:
+            with st.expander("🔍 Besoin d'aide pour identifier ?", expanded=True):
+                st.markdown("""
+                **👹 Pistes Sabotage Interne :**
+                * **L'Inertie :** "La tâche semble trop grosse."
+                * **Le Perfectionnisme :** "Peur que ce soit nul."
+                * **L'Ennui :** "C'est trop répétitif."
+                * **La Fatigue :** "Brouillard mental."
+                
+                **🔊 Pistes Sabotage Externe :**
+                * **Le Numérique :** "Notifs Slack/Insta."
+                * **L'Humain :** "Collègues qui interrompent."
+                * **Le Sonore :** "Bruit ambiant / Travaux."
+                * **L'Imprévu :** "Urgences externes."
+                """)
+            
+
+        st.markdown("---")
+        st.markdown("###### Recevez votre analyse par mail.")
+        
+        # LE CHAMP EMAIL (OBLIGATOIRE)
+        user_email = st.text_input(
+            "Votre Email", 
+            placeholder="exemple@email.com", 
             label_visibility="collapsed"
         )
         
-        with c_theory:
-            st.info("🧬 **Théorie : Chronobiologie & Architecture Temporelle**")
-            
-            st.markdown("""
-            #### 1. Le Mécanisme (Le "Tug-of-War" Hormonal)
-            La performance cognitive n'est pas une question de volonté, mais le résultat d'une équation vectorielle régie par l'hypothalamus (Noyau Suprachiasmatique). Deux forces s'opposent en permanence :
-            
-            D'un côté, le **Processus C (Circadien)** agit comme votre horloge interne. Génétiquement déterminé, il sécrète le cortisol pour l'éveil selon une courbe sinusoïdale. De l'autre, le **Processus S (Homéostatique)** représente la pression de sommeil qui s'accumule via l'adénosine dans le cerveau au fil des heures. Le "Deep Work" n'est possible que lorsque l'écart entre ces deux courbes est maximal.
-            
-            ---
-            
-            #### 2. La Réalité Évolutive (Pourquoi 4 profils ?)
-            Cette diversité n'est pas un hasard, mais une stratégie de survie tribale ("Sentinel Theory"). Pour qu'un groupe survive aux prédateurs, il fallait une vigilance rotative sur 24h : les Lions gardaient l'aube, les Loups le crépuscule, et les Dauphins assuraient une veille légère et erratique.
-            
-            **L'Origine du Modèle :**
-            Cette classification a été théorisée par le **Dr. Michael Breus** (Psychologue Clinicien) pour une raison précise : ses patients n'étaient pas malades, ils étaient juste mal calés. Il a conçu ce système pour ceux qui, comme vous peut-être, se sentent coupables de ne pas être performants à 8h du matin. Il a brisé le mythe binaire "Lève-tôt / Lève-tard" pour offrir un mode d'emploi adapté à la réalité biologique de chacun.
-            
-            **Le Problème Moderne :** La société industrielle a standardisé le travail sur le rythme des Ours (55% de la population). Ce dogme du "9h-17h" impose aux profils atypiques (Loups et Dauphins) un **Jetlag Social** permanent. Lutter contre son chronotype transforme votre cortisol en toxine, réduisant votre QI fluide et augmentant l'inflammation systémique.
-            
-            > **Axiome :** Ne cherchez pas à réparer votre horloge, changez l'heure de vos tâches.
-            """)
-
-    # --- MODULE 2 : ARCHITECTURE ---
-    with st.container(border=True):
-        st.markdown('<div style="color:#FF4B4B; font-weight:bold; font-size:16px; margin-bottom:15px;">📐 Module 2 : Type d\'Architecture (Mode Cognitif)</div>', unsafe_allow_html=True)
+        st.caption("Sans cela, vous ne pourrez recevoir votre protocole par mail.")
+        st.markdown("<br>", unsafe_allow_html=True)
         
-        c_input, c_theory = st.columns([1, 2], gap="large")
-        
-        with c_input:
-            st.markdown("**TYPE D'INTERVENTION**")
-            st.caption("Sélectionnez le registre neuronal sollicité par la tâche.")
-            
-            arch_type = st.radio(
-                "Architecture", 
-                [
-                    "🛠️ **Technique (Hard)** : Mode de pensée convergent et algorithmique. Exige une isolation sensorielle totale pour résoudre des problèmes à solution unique (Code, Math, Infra) avec une tolérance zéro à l'ambiguïté.",
-                    "⚖️ **Éthique (Soft)** : Mode de pensée dialectique et nuancé. Mobilise l'intelligence émotionnelle et culturelle pour traiter des dilemmes humains où la logique binaire est inopérante (Négociation, Valeurs, Politique).",
-                    "🌀 **Système (Meta)** : Mode de pensée holistique et architectural. Vise à réduire l'entropie globale du système en connectant des concepts disparates (Design Pattern, Stratégie, Philosophie) via des boucles de rétroaction."
-                ], 
-                label_visibility="collapsed"
-            )
-            
-        with c_theory:
-            st.info("🏗️ **Théorie : L'Orthogonalité & La Dette de Commutation**")
-            
-            st.markdown("""
-            #### 1. Le Mécanisme (L'Inertie Neurale)
-            Contrairement à un processeur informatique, votre cerveau ne pratique pas le "Multitasking", mais le "Task-Switching". Le problème est que chaque bascule entre un mode logique (froid) et un mode empathique (chaud) engendre une **Taxe Cognitive**. Votre cerveau doit "décharger" le contexte précédent pour "charger" le nouveau, consommant du glucose à vitesse grand V.
-            
-            ---
-            
-            #### 2. L'Origine du Concept (Le "Résidu d'Attention")
-            En 2009, la chercheuse **Sophie Leroy** (University of Minnesota) a identifié pourquoi vous vous sentez épuisé après une journée hachée, même sans travail intense. Elle a théorisé le **"Attention Residue"** : lorsque vous passez d'un code Python à une réunion RH, une partie de vos ressources cognitives reste "bloquée" en arrière-plan sur la tâche A.
-            
-            **Le Conflit Neurologique :**
-            C'est une guerre de territoires. Le mode "Hard" active le Cortex Préfrontal Dorso-Latéral (Logique binaire), qui *inhibe* le Système Limbique pour fonctionner. À l'inverse, le mode "Soft" nécessite l'activation émotionnelle. Tenter d'alterner les deux, c'est comme demander à une voiture de passer la marche arrière en pleine autoroute. La friction n'est pas psychologique, elle est mécanique.
-            
-            **La Solution :** L'étanchéité. Grouper les tâches par signature neurologique (Batching) est le seul moyen de supprimer cette taxe.
-            
-            > **Axiome :** On ne répare pas un moteur avec de la compassion, et on ne dirige pas une équipe avec un algorithme.
-            """)
-    # --- MODULE 3 : WORKING GENIUS ---
-    with st.container(border=True):
-        st.markdown('<div style="color:#00ff00; font-weight:bold; font-size:16px; margin-bottom:15px;">⚙️ Module 3 : Moteur d\'Exécution (Topologie de l\'Effort)</div>', unsafe_allow_html=True)
-        
-        c_input, c_theory = st.columns([1, 2], gap="large")
-        
-        with c_input:
-            st.markdown("**ZONE DE FRICTION**")
-            st.caption("Où se situe votre blocage énergétique actuel ?")
-            
-            work_genius = st.radio(
-                "Génie", 
-                [
-                    "✨ **Idéation (Invention)** : Phase de divergence et de haute entropie. Vous excellez à générer des concepts *ex nihilo* et à identifier les problèmes, mais l'obligation de structurer ou de finir vous paralyse.",
-                    "🔥 **Activation (Mise en Orbite)** : Phase de transition cinétique. Vous excellez à vaincre l'inertie de départ pour transformer une idée abstraite en projet concret, mais la maintenance routinière vous insupporte.",
-                    "🏗️ **Finition (Ténacité)** : Phase de convergence et de réduction d'entropie. Vous excellez à pousser le projet à travers les derniers 20% de friction pour livrer un produit fini, mais la feuille blanche vous angoisse."
-                ], 
-                label_visibility="collapsed"
-            )
-            
-        with c_theory:
-            st.info("⚡ **Théorie : La Thermodynamique de l'Effort (Modèle Lencioni)**")
-            
-            st.markdown("""
-            #### 1. Le Mécanisme (Altitude et Gravité)
-            Tout travail obéit à une loi physique de transformation d'énergie. Une tâche ne naît pas finie ; elle doit descendre une **Courbe d'Altitude**. Elle commence dans la stratosphère (30 000 pieds), là où l'air est rare et la vision infinie (Le *Pourquoi*). Elle doit ensuite traverser la zone de turbulence (15 000 pieds) pour vaincre l'inertie et s'organiser (Le *Comment*), avant d'atterrir sur le tarmac rugueux de la réalité pour être livrée (Le *Quoi*).
-            
-            ---
-            
-            #### 2. L'Origine du Diagnostic (La "Compétence sans Joie")
-            Le consultant **Patrick Lencioni** a découvert une anomalie récurrente : des cadres ultra-compétents qui faisaient des burnout sans surcharge de travail. Sa conclusion a changé la donne : l'épuisement ne vient pas de l'intensité de l'effort, mais de la **nature de l'effort**.
-            
-            **Le Coût de la Mésentente :**
-            Chaque cerveau possède un "Génie" (qui recharge l'énergie) et une "Frustration" (qui la draine). Le drame organisationnel est d'assigner un profil "Aérien" (Idéateur) au polissage des détails au sol, ou de demander à un profil "Terrestre" (Finisseur) de voler sans plan de vol. Cette friction génère une chaleur inutile : c'est la source mécanique de la procrastination. Ce n'est pas de la paresse, c'est un moteur qui tourne avec le mauvais carburant.
-            
-            > **Diagnostic :** Si vous ressentez une fatigue lourde *avant même* de commencer, c'est que la tâche sollicite votre zone de frustration naturelle.
-            """)
+        # --- LOGIQUE DU BOUTON INTELLIGENT ---
+        st.markdown("""
+<style>
+/* Cible uniquement les boutons "Primary" (ceux en vert) */
+div.stButton > button[kind="primary"] {
+    color: #FFFFFF !important; /* Force le BLANC */
+    font-weight: 700 !important; /* Gras pour que ça ressorte bien */
+    border: 1px solid rgba(255,255,255,0.2) !important; /* Petite bordure subtile pour le relief */
+}
+</style>
+""", unsafe_allow_html=True)
+        # 1. Logique d'affichage du bouton (Disparaît si analyse faite)
+        submitted = st.form_submit_button("🚀 GÉNÉRER MON PROTOCOLE OPTIMISÉ", type="primary", use_container_width=True)
 
-# --- SECTION CONTEXTE (Routine & Blocages) ---
-    st.markdown("---")
-    st.write("#### 3. Le Contexte & La Mission")
-    
-    # CRÉATION DE LA "BOÎTE" (Le Container)
-    with st.container(border=True):
-        st.markdown('<div style="margin-bottom: 10px; font-weight:bold; color:#FF4B4B;">📡 Données Opérationnelles</div>', unsafe_allow_html=True)
-        
-        # On utilise gap="small" pour resserrer les éléments
-        col_input_1, col_input_2 = st.columns(2, gap="medium")
-        
-        with col_input_1:
-            routine = st.text_area(
-                "🔄 Ta Routine Actuelle", 
-                placeholder="Ex: Lever 7h, Café, Scroll TikTok...", 
-                height=120,
-                help="Décris ta journée type."
-            )
+        # 2. Exécution Logique (Si clic)
+        if submitted:
+            # A. Barrière de sécurité (Email)
+            if not user_email or "@" not in user_email:
+                st.error("⚠️ L'analyse requiert une adresse email valide pour l'envoi du protocole.")
+                st.stop()
+
+            # B. Consolidation des Inputs
+            # Valeurs par défaut blindées pour éviter le crash
+            current_mission = locals().get('mission', "Restructuration Cognitive")
+            time_range = locals().get('time_range', (9, 18))
+            current_timerange = f"{time_range[0]}h00 - {time_range[1]}h00"
+
+            # Logique de Tendance (Interne)
+            if c_score >= 75: tendency = "ARCHITECTE"
+            elif c_score <= 30: tendency = "CHAOS PILOT"
+            else: tendency = "HYBRIDE"
+
+            final_scores = {
+                "Ouverture": o_score, "Conscience": c_score, 
+                "Extraversion": e_score, "Agréabilité": a_score, "Névrosisme": n_score
+            }
+
+            inputs = {
+                "scores": final_scores,
+                "work_style": {
+                    "chronotype": chronotype,
+                    "architecture": arch_type,
+                    "genius": work_genius,
+                    "tendency": tendency,
+                    "status": user_status
+                },
+                "context": {
+                    "phase_de_vie": life_phase,
+                    "mission": current_mission,
+                    "horaires": current_timerange,
+                    "frictions_internes": friction_internal,
+                    "frictions_externes": friction_external
+                }
+            }
+
+            # --- C. LE THÉÂTRE DU CALCUL (Psychologie de la Valeur) ---
+            # On remplace le spinner simple par une progression narrative
             
-        with col_input_2:
-            blockers = st.text_area(
-                "🚧 Analyse de l'Échec", 
-                placeholder="Ex: Procrastination, Distractions...", 
-                height=120,
-                help="Pourquoi ça bloque ?"
-            )
+            progress_bar = st.progress(0, text="Initialisation du Core Gemini...")
+            status_text = st.empty() # Placeholder pour le texte qui change
+            
+            # Séquence de "Scanning" (Purement cosmétique mais vital pour la conversion)
+            loading_steps = [
+                (10, "🔄 Synchronisation avec l'API Gemini Pro..."),
+                (25, "🧠 Analyse de la topographie O.C.E.A.N..."),
+                (40, "📉 Détection des fuites de dopamine..."),
+                (60, "📐 Calibrage des cycles ultradiens..."),
+                (75, "🔨 Architecture de la journée idéale en cours..."),
+                (90, "⚡ Optimisation des blocs de Deep Work..."),
+                (100, "✅ Génération du Rapport Neuro-Stratégique terminée.")
+            ]
+            
+            # On lance le calcul RÉEL en tâche de fond (ici synchrone mais masqué par l'anim)
+            # Pour l'UX, on force un délai minimum pour que l'utilisateur "sente" le calcul
+            start_time = time.time()
+            
+            # Appel Backend (Le vrai calcul)
+            raw_result = parse_schedule(inputs)
+            
+            # On joue l'animation pendant que (ou après que) le calcul se fait
+            for percent, label in loading_steps:
+                # Petite pause artificielle pour donner du poids (0.3s à 0.6s aléatoire)
+                time.sleep(random.uniform(0.3, 0.7)) 
+                progress_bar.progress(percent, text=label)
+            
+            status_text.empty() # Nettoyage
+            progress_bar.empty() # Nettoyage
 
-        # La Mission juste en dessous, serrée
-        mission = st.text_area(
-            "🎯 Tes Impératifs (Mission)", 
-            placeholder="Ex: Rendre projet Python avant 18h...", 
-            height=200
-        )
-    
-    submitted = st.form_submit_button("🚀 LANCER L'ANALYSE NEURO-CROSS", type="primary", use_container_width=True)
-    
+            # --- D. GESTION DES ERREURS & SUCCÈS ---
+            
+            if not raw_result:
+                st.error("❌ Erreur technique : Le 'Cerveau' n'a pas répondu. Regarde le terminal (écran noir) pour voir le détail du bug.")
+                st.stop()
 
+            # E. Mapping Critique (Backend -> Frontend Storage)
+            formatted_data = {
+                "analysis_report": raw_result.get("teaser_html", "<p>Données non structurées.</p>"),
+                "typical_day": raw_result.get("preview_day", []),
+                "chart_energy": raw_result.get("chart_energy", []),
+                "chart_matrix": raw_result.get("chart_matrix", []),
+                "chart_fogg": raw_result.get("chart_fogg", []),
+                "archetype": raw_result.get("archetype", "Inconnu"),
+                "rarity": raw_result.get("rarity", "Standard"),
+                "superpower": raw_result.get("superpower", "Polyvalence"),
+                "kryptonite": raw_result.get("kryptonite", "Distraction"),
+                "quote": "L'ordre est la forme que l'on donne au chaos."
+            }
 
+            # F. Sauvegarde & Injection
+            save_lead_to_gsheet(user_email, json.dumps(raw_result), inputs)
 
-# --- LOGIQUE DE SOUMISSION ---
-if submitted:
-    # 1. Consolidation des Scores
-    final_O = o_score if o_score > 0 else o_est
-    final_C = c_score if c_score > 0 else c_est
-    final_E = e_score if e_score > 0 else e_est
-    final_A = a_score if a_score > 0 else a_est
-    final_N = n_score if n_score > 0 else n_est
-    
-    final_scores = {
-        "Ouverture": final_O, "Conscience": final_C, 
-        "Extraversion": final_E, "Agréabilité": final_A, "Névrosisme": final_N
-    }
-
-    # 2. Calcul de la Tendance
-    if final_C >= 75:
-        tendency = "ARCHITECTE (Structure Rigide)"
-    elif final_C <= 30:
-        tendency = "CHAOS PILOT (Fonctionnement par Sauts)"
-    else:
-        tendency = "HYBRIDE (Flexibilité Modérée)"
-
-    # 3. Validation
-    if not mission and not blockers:
-        st.warning("⚠️ Mission ou Blocage requis pour triangulation.")
-        st.stop()
-
-    # 4. Construction de la Payload
-    inputs = {
-        "scores": final_scores,
-        "work_style": {
-            "chronotype": chronotype,
-            "architecture": arch_type,
-            "genius": work_genius,
-            "tendency": tendency
-        },
-        "context": {
-            "mission": mission,
-            "routine": routine,
-            "blockers": blockers
-        }
-    }
-
-    # 5. Exécution & Stockage
-    with st.spinner("🔄 Initialisation du Core Gemini..."):
-        # Appel simple sans argument debug_mode
-        raw_response = parse_schedule(inputs) 
-        
-        try:
-            # Stockage dans la mémoire de session
-            st.session_state['analysis_result'] = json.loads(raw_response)
-            # On sauvegarde aussi les scores pour le Paywall
+            st.session_state['data'] = formatted_data
+            st.session_state['analysis_result'] = raw_result
             st.session_state['final_scores'] = final_scores 
-            st.session_state['tendency'] = tendency
-        except json.JSONDecodeError:
-            st.error("🚨 Erreur Critique : Format invalide reçu du backend.")
-            st.code(raw_response)
-            st.stop()
+            
+            # G. Refresh pour afficher le résultat
+            st.rerun()
+
+
 
 # --- LOGIQUE D'AFFICHAGE (EN DEHORS DU IF SUBMITTED) ---
-# Ce bloc doit être COLLÉ À GAUCHE (Indentation 0)
-if 'analysis_result' in st.session_state:
-    
-    # On récupère les données
-    data = st.session_state['analysis_result']
-    # On récupère les scores sauvegardés pour éviter les erreurs d'affichage
-    saved_scores = st.session_state.get('final_scores', {"Conscience": 50}) 
-    saved_tendency = st.session_state.get('tendency', "Inconnu")
 
-    # --- RÉSULTATS ---
-    st.markdown("---")
+if 'data' in st.session_state and st.session_state['data']:
+    
+    # --- DÉBUT DU BLOC INDENTÉ (Tout ce qui suit a 4 espaces ou 1 Tab) ---
+    
+    # A. Récupération des données
+    data = st.session_state['analysis_result']
+    formatted_data = st.session_state['data']
+    saved_scores = st.session_state.get('final_scores', {})
+    
+    # B. Séparateur
+    st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
     
     # Création des 4 onglets de visualisation
-    res_tab1, res_tab2, res_tab3, res_tab4 = st.tabs(["📅 Synthèse & Planning", "⚡ Bio-Rythme", "🧬 Matrice Énergie", "⚙️ Mécanique de l'Action"])
+    res_tab1, res_tab2, res_tab3, res_tab4 = st.tabs(["📅 Votre Personne", "⚡ Votre Énergie", "🧬 Votre Profil", "⚙️ Votre Mécanique"])
 
-    # --- ONGLET 1 : SYNTHÈSE & PLANNING ---
+    # ==========================================================================
+    # ONGLET 1 : SYNTHÈSE (RPG + RADAR)
+    # ==========================================================================
     with res_tab1:
-        st.markdown("#### 📅 L'Algorithme de Structuration Temporelle")
-
-        # BLOC 1 : LA STRUCTURE COGNITIVE (Conscience)
-        with st.container(border=True):
-            st.markdown('<div style="color:#00ff00; font-weight:bold; margin-bottom:10px;">📐 1. L\'Axe de la Structure (Conscience)</div>', unsafe_allow_html=True)
-            
-            c1, c2, c3 = st.columns(3, gap="medium")
-            
-            with c1:
-                st.markdown("**🔼 L'Architecte (C > 75)**")
-                st.caption("Besoin : Continuité")
-                st.success("Stratégie : SÉQUENTIEL")
-                st.markdown("Performance via la prévisibilité.<br><b>🔧 Action :</b> Deep Work massif (90min).", unsafe_allow_html=True)
-
-            with c2:
-                st.markdown("**⏺️ Le Flex-Master (30-75)**")
-                st.caption("Besoin : Équilibre")
-                st.warning("Stratégie : HYBRIDE")
-                st.markdown("Cadre souple requis.<br><b>🔧 Action :</b> Matin Carré / Aprèm Libre.", unsafe_allow_html=True)
-                
-            with c3:
-                st.markdown("**🔽 Le Chaos Pilot (C < 30)**")
-                st.caption("Besoin : Urgence")
-                st.error("Stratégie : SPRINT")
-                st.markdown("Moteur dopamine/nouveauté.<br><b>🔧 Action :</b> Gamification (25min).", unsafe_allow_html=True)
-
-        # BLOC 2 : LA CHARGE MENTALE (Névrosisme)
-        with st.container(border=True):
-            st.markdown('<div style="color:#FF4B4B; font-weight:bold; margin-bottom:10px;">🧠 2. L\'Axe de la Charge (Névrosisme)</div>', unsafe_allow_html=True)
-            
-            n1, n2, n3 = st.columns(3, gap="medium")
-            
-            with n1:
-                st.markdown("**🔼 La Sentinelle (N > 70)**")
-                st.markdown("Coût Cognitif Élevé. Nécessite des **Zones Tampons** (Pauses de sécurité).", unsafe_allow_html=True)
-
-            with n2:
-                st.markdown("**⏺️ Le Régulateur (30-70)**")
-                st.markdown("Tolérance standard. Planification classique avec **Marges d'erreur**.", unsafe_allow_html=True)
-
-            with n3:
-                st.markdown("**🔽 Le Stoïque (N < 30)**")
-                st.markdown("Imperméable au stress. Autorise une **Densité Maximale** de tâches.", unsafe_allow_html=True)
-
+        col_card, col_radar = st.columns([1.3, 1], gap="medium")
         
-        # SECTION ANALYSE IA + CARTE RPG
-        st.markdown("---")
-        st.markdown("#### 🧬 Votre Neuro-Audit")
+        with col_card:
+            st.markdown(f"""
+<div class="rpg-card" style="text-align: left; background-color: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+<div style="display:flex; justify-content:space-between; align-items:center;">
+<div style="font-size:11px; color:#111; font-weight:bold; letter-spacing:1px; text-transform:uppercase; border:1px solid #111; padding: 3px 8px; border-radius:4px;">
+🧬 Rareté : {data.get('rarity', 'N/A')}
+</div>
+<div style="font-size:11px; color:#888;">ID: #OCEAN-{random.randint(1000,9999)}</div>
+</div>
+<div class="archetype-title" style="text-align:left; margin-top:15px; font-size:26px; color:#111; font-weight:900; letter-spacing:-0.5px;">
+{data.get('archetype', 'Architecte')}
+</div>
+<div style="font-style:italic; color:#666; margin-top:5px; font-size:14px; border-left: 3px solid #111; padding-left: 12px;">
+"{data.get('quote', 'Pas de citation')}"
+</div>
+<hr style="border-top: 1px solid #eee; margin: 20px 0;">
 
-        with st.container(border=True):
-            st.info(f"💡 **Stratégie Cognitive Détectée :** {data.get('analysis_global', 'Analyse en cours...')}")
+<div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px;">
+<div style="color:#111; font-weight:bold; font-size:11px; margin-bottom:5px; text-transform:uppercase;">DIAGNOSTIC SYSTÈME :</div>
+<div style="color:#555; font-size:13px; line-height:1.5;">
+Configuration neuronale atypique détectée. Ce profil présente un potentiel de haute performance bridé par des frictions spécifiques.
+</div>
+</div>
 
-            col_card, col_radar = st.columns([1.3, 1], gap="medium")
-            
-            with col_card:
-                st.markdown(f"""
-                <div class="rpg-card" style="text-align: left; background-color: #151515; border: 1px solid #333; border-radius: 10px; padding: 20px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="font-size:11px; color:#FF4B4B; font-weight:bold; letter-spacing:1px; text-transform:uppercase; border:1px solid #FF4B4B; padding: 2px 6px; border-radius:4px;">
-                        🧬 Rareté : {data.get('rarity', 'N/A')}
-                        </div>
-                        <div style="font-size:11px; color:#666;">ID: #OCEAN-{random.randint(1000,9999)}</div>
-                    </div>
-                    <div class="archetype-title" style="text-align:left; margin-top:15px; font-size:24px; color:#fff; font-weight:bold;">
-                    {data.get('archetype', 'Architecte')}
-                    </div>
-                    <div style="font-style:italic; color:#aaa; margin-top:5px; font-size:13px; border-left: 3px solid #555; padding-left: 10px;">
-                    "{data.get('quote', 'Pas de citation')}"
-                    </div>
-                    <hr style="border-color:#333; margin: 20px 0; opacity:0.5;">
-                    <div style="background: rgba(255, 75, 75, 0.1); padding: 12px; border-radius: 6px; border-left: 3px solid #FF4B4B; margin-bottom: 20px;">
-                        <div style="color:#FF4B4B; font-weight:bold; font-size:11px; margin-bottom:5px; text-transform:uppercase;">⚠️ DIAGNOSTIC SYSTÈME :</div>
-                        <div style="color:#ddd; font-size:12px; line-height:1.4;">
-                        Configuration neuronale atypique détectée. Ce profil présente un potentiel de haute performance bridé par des frictions spécifiques.
-                        </div>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <div style="color:#888; font-size:10px; text-transform:uppercase; letter-spacing:1px; margin-bottom:3px;">
-                        ⚔️ Vecteur de Puissance
-                        </div>
-                        <div style="color:#00ff00; font-weight:bold; font-size:15px; background: rgba(0,255,0,0.05); padding: 8px; border-radius:4px; border: 1px solid rgba(0,255,0,0.1);">
-                        {data.get('superpower', 'N/A')}
-                        </div>
-                    </div>
-                    <div>
-                        <div style="color:#888; font-size:10px; text-transform:uppercase; letter-spacing:1px; margin-bottom:3px;">
-                        🔴 Point de Rupture
-                        </div>
-                        <div style="color:#FF4B4B; font-weight:bold; font-size:15px; background: rgba(255,75,75,0.05); padding: 8px; border-radius:4px; border: 1px solid rgba(255,75,75,0.1);">
-                        {data.get('kryptonite', 'N/A')}
-                        </div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col_radar:
-                # Récupération des scores sauvegardés si besoin
-                if saved_scores:
-                    df_scores = pd.DataFrame(dict(r=list(saved_scores.values()), theta=list(saved_scores.keys())))
-                    fig = px.line_polar(df_scores, r='r', theta='theta', line_close=True, range_r=[0,100])
-                    
-                    fig.update_traces(fill='toself', line_color='#FF4B4B', line_width=2)
-                    fig.update_layout(
-                        paper_bgcolor="rgba(0,0,0,0)", 
-                        plot_bgcolor="rgba(0,0,0,0)",
-                        margin=dict(l=20, r=20, t=20, b=20),
-                        polar=dict(
-                            radialaxis=dict(visible=True, range=[0, 100], color="#555", showticklabels=False), 
-                            angularaxis=dict(color="white"),
-                            bgcolor="rgba(255, 255, 255, 0.05)"
-                        )
-                    )
-                    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
-        
-        # TABLEAU PLANNING
-        st.markdown("### 🗓️ Protocole d'Exécution (Planning)")
-        planning = data.get("planning", [])
-        if len(planning) > 0:
-            df_free = pd.DataFrame(planning)
-            try:
-                df_display = df_free[["start_iso", "titre", "categorie", "description"]].copy()
-                df_display["Heure"] = df_display["start_iso"].apply(lambda x: x.split('T')[1][:5] if 'T' in x else x)
-                df_display = df_display[["Heure", "titre", "categorie", "description"]]
-                df_display.columns = ["🕒 Heure", "📝 Action", "🏷️ Catégorie", "ℹ️ Consigne Tactique"]
-                st.dataframe(df_display, hide_index=True, use_container_width=True)
-            except:
-                st.dataframe(df_free, hide_index=True, use_container_width=True)
-        else:
-            st.info("Aucun planning généré pour l'instant.")
+<div style="margin-bottom: 15px;">
+<div style="color:#888; font-size:10px; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; font-weight:600;">
+⚔️ Votre Super-Pouvoir
+</div>
+<div style="color:#007700; font-weight:bold; font-size:15px; background: #eaffea; padding: 10px; border-radius:6px; border: 1px solid #d4fdd4;">
+{data.get('superpower', 'N/A')}
+</div>
+</div>
+<div>
+<div style="color:#888; font-size:10px; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; font-weight:600;">
+🔴 Votre Faiblesse (Kryptonite)
+</div>
+<div style="color:#cc0000; font-weight:bold; font-size:15px; background: #ffebeb; padding: 10px; border-radius:6px; border: 1px solid #ffcdcd;">
+{data.get('kryptonite', 'N/A')}
+</div>
+</div>
+</div>
+            """, unsafe_allow_html=True)
+# st.plotly_chart(fig_radar)
+        with col_radar:
+            if saved_scores:
+                df_scores = pd.DataFrame(dict(r=list(saved_scores.values()), theta=list(saved_scores.keys())))
+                fig = px.line_polar(df_scores, r='r', theta='theta', line_close=True, range_r=[0,100])
+                fig.update_traces(fill='toself', line_color='#111', line_width=2)
+                fig.update_layout(
+                    margin=dict(l=20, r=20, t=20, b=20),
+                    polar=dict(
+                        radialaxis=dict(visible=True, range=[0, 100], color="#888", showticklabels=False), 
+                        angularaxis=dict(color="#111"),
+                        bgcolor="rgba(0,0,0,0.02)"
+                    ),
+                    paper_bgcolor="rgba(0,0,0,0)"
+                )
+                st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
-    # --- ONGLET 2 : BIO-RYTHME ---
+    # ==========================================================================
+    # ONGLET 2 : BIO-RYTHME (Courbe Energie)
+    # ==========================================================================
     with res_tab2:
-        st.markdown("#### ⚡ Chronobiologie & Performance (Loi de Breus)")
-
-        # BLOC 1 : LE POSTULAT
-        with st.container(border=True):
-            st.markdown('<div style="color:#00ff00; font-weight:bold; margin-bottom:10px;">🕒 1. Synchronisation Circadienne</div>', unsafe_allow_html=True)
-            
-            c_theo, c_eq = st.columns([2, 1], gap="large")
-            with c_theo:
-                st.markdown("""
-                **La Réalité Biologique :**
-                Le temps n'est pas linéaire, il est cyclique. Votre performance cognitive est dictée par la courbe de température corporelle et la sécrétion de Cortisol.
-                Lutter contre son pic naturel génère une **Friction Métabolique** (Fatigue sans travail). L'objectif est l'alignement de phase.
-                """)
-            with c_eq:
-                st.latex(r"P(t) = C_{ortisol}(t) \times \mu_{focus}")
-                st.caption("Performance = Phase Hormonale x Coefficient Focus")
-
-        # BLOC 2 : ARCHITECTURES SOLAIRES
-        with st.container(border=True):
-            st.markdown('<div style="color:#FF4B4B; font-weight:bold; margin-bottom:15px;">☀️ 2. Architectures Solaires (Early Phase)</div>', unsafe_allow_html=True)
-            c_lion, c_bear = st.columns(2, gap="medium")
-            
-            with c_lion:
-                st.markdown("#### 🦁 Le Lion (Matin - 15%)")
-                st.caption("Latence Nulle | Pic : 06h-11h")
-                st.success("✅ Stratégie : FRONT-LOADING")
-                st.markdown("""
-                **Diagnostic :**
-                Démarrage système immédiat. Énergie massive le matin, effondrement linéaire dès 14h.
-                <div style="margin-top:10px; border-top:1px solid #444; padding-top:5px;">
-                <b>🔧 Protocole :</b><br>
-                1. <b>08h-12h :</b> Deep Work Analytique (Zone Sacrée).<br>
-                2. <b>Post-14h :</b> Mode Maintenance (Admin/Mails).<br>
-                3. <b>Interdit :</b> Tâches complexes après 17h.
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with c_bear:
-                st.markdown("#### 🐻 L'Ours (Standard - 55%)")
-                st.caption("Cycle Solaire | Pic : 10h-14h")
-                st.info("ℹ️ Stratégie : GESTION DE CRASH")
-                st.markdown("""
-                **Diagnostic :**
-                Montée en puissance progressive. Stabilité élevée mais sujet au **Crash Post-Prandial** (14h) violent.
-                <div style="margin-top:10px; border-top:1px solid #444; padding-top:5px;">
-                <b>🔧 Protocole :</b><br>
-                1. <b>Matin :</b> Production & Analyse.<br>
-                2. <b>14h-15h30 :</b> Tâches Low-Cognitive (Réunions, Appels).<br>
-                3. <b>16h :</b> Seconde fenêtre de tir (Sprint final).
-                </div>
-                """, unsafe_allow_html=True)
-
-        # BLOC 3 : ARCHITECTURES ATYPIQUES
-        with st.container(border=True):
-            st.markdown('<div style="color:#FF4B4B; font-weight:bold; margin-bottom:15px;">🌙 3. Architectures Décalées (Late Phase)</div>', unsafe_allow_html=True)
-            c_wolf, c_dolphin = st.columns(2, gap="medium")
-            
-            with c_wolf:
-                st.markdown("#### 🐺 Le Loup (Soir - 15%)")
-                st.caption("Inversion Cortisol | Pic : 17h-00h")
-                st.warning("⚠️ Stratégie : DÉMARRAGE DÉFENSIF")
-                st.markdown("""
-                **Diagnostic :**
-                Forte "Inertie du Sommeil" (Brouillard mental matinal). Pic créatif nocturne. Socialement décalé.
-                <div style="margin-top:10px; border-top:1px solid #444; padding-top:5px;">
-                <b>🔧 Protocole :</b><br>
-                1. <b>Avant 11h :</b> Veille, Lecture (Pas de Création).<br>
-                2. <b>17h-Minuit :</b> Prime Time (Bloquez ce créneau).<br>
-                3. <b>Acceptation :</b> Ne luttez pas pour être "du matin".
-                </div>
-                """, unsafe_allow_html=True)
-
-            with c_dolphin:
-                st.markdown("#### 🐬 Le Dauphin (Chaos - 10%)")
-                st.caption("Signal Bruité | Pic : Erratique")
-                st.error("🚨 Stratégie : MICRO-SPRINTS")
-                st.markdown("""
-                **Diagnostic :**
-                Sommeil fragmenté. Fonctionne à "l'énergie nerveuse". Fatigué mais alerte ("Wired but tired").
-                <div style="margin-top:10px; border-top:1px solid #444; padding-top:5px;">
-                <b>🔧 Protocole :</b><br>
-                1. <b>Opportunisme :</b> Travaillez dès qu'une fenêtre s'ouvre.<br>
-                2. <b>Sprints Courts :</b> 45min max (Pomodoro strict).<br>
-                3. <b>Siestes :</b> Power naps de 20min vitales.
-                </div>
-                """, unsafe_allow_html=True)
-
-        # SECTION GRAPHIQUE (Plotly)
-        st.markdown("---")
-        st.markdown("#### 🌊 Votre Courbe de Puissance Cognitive")
-        
-        st.info(f"🧬 **Analyse Personnalisée :** {data.get('analysis_bio', 'Calcul en cours...')}")
-        
+        st.markdown("""
+**Analyse du Rythme Biologique :** Ce graphique matérialise votre niveau d'énergie théorique sur la journée. Les pics correspondent aux moments où votre concentration est maximale (idéal pour le travail complexe), tandis que les creux indiquent les périodes de récupération ou de travail superficiel. L'IA se base sur cette courbe pour placer vos tâches les plus difficiles au moment où elles vous coûteront le moins d'effort.
+        """)
+# st.plotly_chart(fig_energy)
         energy_data = data.get("chart_energy", [])
         if energy_data:
             df_energy = pd.DataFrame(energy_data)
-            fig_energy = px.line(df_energy, x="heure", y="niveau", markers=True, line_shape="spline")
-            
-            fig_energy.update_traces(line_color='#00ff00', line_width=4, marker_size=8, marker_color='#ffffff')
-            fig_energy.add_hline(y=80, line_dash="dot", line_color="rgba(255,255,255,0.5)", annotation_text="Zone Hyperfocus")
-            
+            fig_energy = px.line(df_energy, x="heure", y="niveau", markers=True, line_shape="spline", template="plotly_white")
+            fig_energy.update_traces(line_color='#00aa00', line_width=3, marker_size=6, marker_color='#ffffff', marker_line_width=2, marker_line_color='#00aa00')
+            fig_energy.add_hline(y=80, line_dash="dot", line_color="#999", annotation_text="Hyperfocus", annotation_position="top left")
             fig_energy.update_layout(
-                xaxis_title="Heure de la Journée", 
-                yaxis_title="Niveau d'Énergie (0-100)",
-                paper_bgcolor="rgba(0,0,0,0)", 
-                plot_bgcolor="rgba(0,0,0,0.2)", 
-                font=dict(color="white"),
+                height=250, 
+                xaxis_title=None, 
+                yaxis_title=None,
+                font=dict(color="#333", size=11),
                 hovermode="x unified",
-                xaxis=dict(showgrid=False),
-                yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)')
+                xaxis=dict(showgrid=False, tickfont=dict(color='#666')),
+                yaxis=dict(showgrid=True, gridcolor='#eee', tickfont=dict(color='#666')),
+                margin=dict(l=10, r=10, t=10, b=10),
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)'
             )
-            st.plotly_chart(fig_energy, use_container_width=True)
-        else:
-            st.warning("⚠️ Données d'énergie non disponibles.")
+            st.plotly_chart(fig_energy, use_container_width=True, config={'displayModeBar': False})
 
-    # --- ONGLET 3 : MATRICE ÉNERGIE ---
+    # ==========================================================================
+    # ONGLET 3 : MATRICE ÉNERGIE
+    # ==========================================================================
     with res_tab3:
-        st.markdown("#### 🧬 La Dynamique Énergétique (Cortical Arousal)")
-
-        # BLOC 1 : LE POSTULAT
-        with st.container(border=True):
-            st.markdown('<div style="color:#00ff00; font-weight:bold; margin-bottom:10px;">⚡ 1. Le Bilan Métabolique (Loi de Eysenck)</div>', unsafe_allow_html=True)
-            c_theo, c_eq = st.columns([2, 1], gap="large")
-            with c_theo:
-                st.markdown("""
-                **La Réalité Neurologique :**
-                L'énergie cognitive n'est pas une question de "volonté", mais de **Seuil d'Activation Cortical** (ARAS). 
-                Le cerveau cherche constamment l'homéostasie (niveau de stimulation optimal).
-                * Un cerveau *Introverti* est naturellement **saturé** (High Arousal) -> Il cherche à réduire le signal.
-                * Un cerveau *Extraverti* est naturellement **sous-alimenté** (Low Arousal) -> Il cherche à augmenter le signal.
-                """)
-            with c_eq:
-                st.latex(r"\Delta E = E_{stimulus} - E_{cost}")
-                st.caption("Énergie Résiduelle = Stimulation Reçue - Coût Cognitif")
-
-        # BLOC 2 : LES 3 ARCHITECTURES
-        with st.container(border=True):
-            st.markdown('<div style="color:#FF4B4B; font-weight:bold; margin-bottom:15px;">🧠 2. Architectures & Protocoles</div>', unsafe_allow_html=True)
-            col_intro, col_ambi, col_extro = st.columns(3, gap="medium")
-            
-            # --- INTRO ---
-            with col_intro:
-                st.markdown("#### 🛡️ Interne (E < 40)")
-                st.caption("Cortex Haute Fréquence")
-                st.info("⚠️ Sensibilité : HAUTE")
-                st.markdown("""
-                **Mécanisme :**
-                Cortex pré-activé. Tout stimulus externe est traité comme une **Agression Sensorielle**.
-                <br>
-                **L'Équation :**
-                * Interaction = 🟥 DRAIN MASSIF
-                * Solitude = 🟩 RECHARGE OBLIGATOIRE
-                <div style="margin-top:10px; border-top:1px solid #444; padding-top:5px;">
-                <b>🔧 Protocoles Impératifs :</b><br>
-                1. <b>Radical Batching :</b> 0 réunion le matin.<br>
-                2. <b>Buffer 15' :</b> Silence absolu après visio.<br>
-                3. <b>Async First :</b> Refusez les appels non-planifiés.
-                </div>
-                """, unsafe_allow_html=True)
-
-            # --- AMBI ---
-            with col_ambi:
-                st.markdown("#### ⚖️ Central (40-60)")
-                st.caption("L'Hybride Contextuel")
-                st.warning("⚠️ Risque : Crash Silencieux")
-                st.markdown("""
-                **Mécanisme :**
-                Plasticité neuronale. Vous pouvez simuler l'extraversion, mais votre batterie a une capacité fixe.
-                <br>
-                **L'Équation :**
-                * Interaction = 🟨 COÛT DIFFÉRÉ
-                * Solitude = 🟨 MAINTENANCE CYCLIQUE
-                <div style="margin-top:10px; border-top:1px solid #444; padding-top:5px;">
-                <b>🔧 Protocoles Impératifs :</b><br>
-                1. <b>Pendule 24h :</b> Matin Social / Aprèm Deep Work.<br>
-                2. <b>Monitoring :</b> Ne jamais enchaîner 2 jours "Full Social".<br>
-                3. <b>Sanctuarisation :</b> 2h/jour bloquées sans négo.
-                </div>
-                """, unsafe_allow_html=True)
-
-            # --- EXTRO ---
-            with col_extro:
-                st.markdown("#### 📡 Externe (E > 60)")
-                st.caption("Seuil d'Activation Élevé")
-                st.success("✅ Besoin Stimulus : HAUT")
-                st.markdown("""
-                **Mécanisme :**
-                Cortex hypo-actif. Le silence est interprété comme une **Menace**. Besoin de friction externe.
-                <br>
-                **L'Équation :**
-                * Interaction = 🟩 GAIN D'ÉNERGIE
-                * Isolation = 🟥 ATROPHIE
-                <div style="margin-top:10px; border-top:1px solid #444; padding-top:5px;">
-                <b>🔧 Protocoles Impératifs :</b><br>
-                1. <b>Body Doubling :</b> Travaillez en café/co-working.<br>
-                2. <b>Ping-Pong :</b> Réfléchissez en parlant.<br>
-                3. <b>Mouvement :</b> Pas de station assise > 45min.
-                </div>
-                """, unsafe_allow_html=True)
-        
-        st.markdown("#### 🔋 Coût Énergétique des Tâches")
-        st.info(f"🔋 **Analyse de la Batterie Interne :** {data.get('analysis_social', 'Calcul...')}")
-        
+        st.markdown("""
+**Lecture du Bilan Énergétique :** Ce graphique mesure l'impact biologique réel de chaque tâche sur votre réserve d'énergie mentale. Les barres vertes indiquent vos tâches "Moteur", celles qui correspondent à votre nature profonde et vous procurent de l'élan, tandis que les barres rouges signalent les tâches "Vampires" qui exigent un effort de volonté coûteux. L'IA utilise cette analyse pour équilibrer votre journée, en veillant à ce que les activités régénératrices compensent la dépense nerveuse afin d'éviter l'épuisement.
+""")
+# st.plotly_chart(fig_matrix, use_container_width=True, config={'displayModeBar': False})
+# st.plotly_chart(fig_type_effort)
         matrix_data = data.get("chart_matrix", [])
         if matrix_data:
             df_matrix = pd.DataFrame(matrix_data)
+            
             fig_matrix = go.Figure(go.Bar(
                 x=df_matrix['impact'],
                 y=df_matrix['tache'],
                 orientation='h',
+                # Texte de la valeur SUR la barre
+                text=df_matrix['impact'], 
+                textposition='auto',
                 marker=dict(
-                    color=df_matrix['impact'],
+                    color=df_matrix['impact'], 
                     colorscale='RdYlGn', 
-                    line=dict(color='rgba(255, 255, 255, 0.3)', width=1)
+                    line=dict(color='rgba(0,0,0,0.1)', width=1)
                 )
             ))
+
             fig_matrix.update_layout(
-                xaxis_title="Drain (-) vs Recharge (+)",
-                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="white"), margin=dict(l=10, r=10, t=30, b=30)
+                height=300, 
+                template="plotly_white",
+                margin=dict(l=20, r=20, t=30, b=20),
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                
+                xaxis=dict(
+                    showgrid=True, 
+                    gridcolor='#e0e0e0',
+                    zeroline=True,
+                    zerolinecolor='#000000', # Ligne zéro noire
+                    tickfont=dict(color="#000000", size=12) # Chiffres du bas en noir
+                ),
+                
+                yaxis=dict(
+                    autorange="reversed",
+                    automargin=True,
+                    # C'EST ICI QUE CA SE JOUE :
+                    tickfont=dict(color="#000000", size=14, family="Arial, sans-serif", weight="bold") 
+                )
             )
-            st.plotly_chart(fig_matrix, use_container_width=True)
-        else:
-            st.warning("⚠️ Données matrice non disponibles.")
+            
+            st.plotly_chart(fig_matrix, use_container_width=True, config={'displayModeBar': False})
 
-    # --- ONGLET 4 : MÉCANIQUE DE L'ACTION ---
+    # ==========================================================================
+    # ONGLET 4 : MÉCANIQUE (FOGG)
+    # ==========================================================================
     with res_tab4:
-        st.markdown("#### ⚙️ Modèle B=MAT : Thermodynamique de l'Action")
         
-        # BLOC 1 : L'ÉQUATION
-        with st.container(border=True):
-            st.markdown('<div style="color:#00ff00; font-weight:bold; margin-bottom:10px;">🧪 1. L\'Équation Non-Linéaire</div>', unsafe_allow_html=True)
-            col_form, col_desc = st.columns([1, 2], gap="large")
-            with col_form:
-                st.latex(r"B = M \times A \times T")
-                st.caption("Behavior = Motivation x Ability x Trigger")
-                st.markdown("""
-                <div style="background-color:#1c202a; padding:10px; border-radius:5px; font-size:12px; border:1px solid #333; margin-top:10px;">
-                <b>Règle du Zéro :</b><br>
-                L'équation est multiplicative. Si une variable est nulle, le résultat est 0.
-                </div>
-                """, unsafe_allow_html=True)
-            with col_desc:
-                st.markdown("""
-                **Le Postulat de B.J. Fogg (Stanford) :**
-                L'inaction n'est pas une défaillance morale, mais un échec d'architecture.
-                * **Dynamique :** Tâche dure (Capacité faible) = Motivation requise très élevée. Tâche simple = Motivation faible suffit.
-                * **Erreur :** Tenter de forcer la Motivation (M) alors que le levier est la Capacité (A).
-                """)
-
-        # BLOC 2 : VARIABLES
-        with st.container(border=True):
-            st.markdown('<div style="color:#FF4B4B; font-weight:bold; margin-bottom:15px;">🧩 2. Décomposition des Vecteurs</div>', unsafe_allow_html=True)
-            c1, c2, c3 = st.columns(3, gap="medium")
+        # THEORIE CACHÉE
+        with st.expander("Comprendre la Mécanique de l'Action (Le Modèle Fogg)", expanded=False):
             
-            with c1:
-                st.markdown("#### 🔥 M - Motivation")
-                st.caption("L'Oscillateur (Dopamine)")
-                st.markdown("""
-                **Nature :** Ondulatoire et imprévisible. Dépend du sommeil, glucose, stress.
-                <br>
-                **Analyse :** Baser une routine sur la motivation est une faute systémique.
-                *Stratégie :* Profiter des vagues pour les tâches dures, mais concevoir pour les jours "sans".
-                """, unsafe_allow_html=True)
-            
-            with c2:
-                st.markdown("#### 🧱 A - Capacité")
-                st.caption("La Résistance (Friction)")
-                st.markdown("""
-                **Nature :** Le Coût Métabolique. Loi du Moindre Effort.
-                <br>
-                **Analyse :** Procrastination = Ratio Récompense/Coût négatif.
-                *Stratégie :* Réduire la taille de la tâche jusqu'à friction zéro (Tiny Habits).
-                """, unsafe_allow_html=True)
-            
-            with c3:
-                st.markdown("#### ⚡ T - Déclencheur")
-                st.caption("L'Interrupteur (Signal)")
-                st.markdown("""
-                **Nature :** L'Appel à l'Action. Pas de comportement sans prompt.
-                <br>
-                **Analyse :** Un trigger doit être "Chaud" (Actionnable immédiatement).
-                *Types :* Spark (Motivation), Facilitator (Capacité), Signal (Rappel).
-                """, unsafe_allow_html=True)
+            # --- PARTIE 1 : LE PRINCIPE ---
+            st.markdown("#### 1. L'Équation : Pourquoi la volonté ne suffit pas")
+            st.markdown("""
+            Selon le Dr. B.J. Fogg (Stanford), une action ne se produit pas par magie. Elle est le résultat d'une multiplication stricte entre trois facteurs : la Motivation, la Capacité et le Déclencheur. La règle est impitoyable : si une seule de ces variables est égale à zéro, le résultat est nul. Vous pouvez être extrêmement motivé, si vous n'avez pas de déclencheur, rien ne se passe. À l'inverse, si le déclencheur sonne mais que la tâche est trop difficile pour votre motivation actuelle, vous procrastinez.
+            """)
 
-        # BLOC 3 : TOPOLOGIE
-        with st.container(border=True):
-            st.markdown('<div style="color:#aaa; font-weight:bold; margin-bottom:10px;">📍 3. Topologie de l\'Échec et de la Réussite</div>', unsafe_allow_html=True)
-            z1, z2, z3 = st.columns(3, gap="medium")
-            with z1:
-                st.error("🔴 Zone de Procrastination")
-                st.markdown("**Diagnostic : Friction > Motivation**")
-                st.markdown("Le cerveau perçoit une menace énergivore. **Sortie :** Division par 10.", unsafe_allow_html=True)
-            with z2:
-                st.warning("⚠️ Le Piège Dopaminergique")
-                st.markdown("**Diagnostic : Motivation > Friction 0**")
-                st.markdown("Scroll infini, jeux. **Sortie :** Friction Artificielle (éloigner téléphone).", unsafe_allow_html=True)
-            with z3:
-                st.success("🟢 La Zone de Flow")
-                st.markdown("**Diagnostic : Alignement M=A**")
-                st.markdown("Compétence = Challenge. **Maintien :** Protéger contre les interruptions.", unsafe_allow_html=True)
+            st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True) # Espaceur
+            
+        
 
+        st.markdown("""
+**Lecture de la Matrice de Résistance :**Ce graphique cartographie vos tâches selon deux dimensions critiques. L'axe horizontal représente la Friction (l'effort d'activation) : plus un point est situé à gauche, plus la tâche est facile à démarrer immédiatement ; à l'inverse, plus il est à droite, plus il demande de discipline. L'axe vertical indique votre Motivation (Dopamine) : les points en haut sont les tâches qui vous excitent, ceux en bas sont celles qui vous ennuient. Cette lecture permet d'identifier visuellement vos "Victoires Rapides" (Haut-Gauche) et d'isoler les zones de "Danger Procrastination" (Bas-Droite) pour ne pas les subir.
+        """)
+# st.plotly_chart(fig_fogg, use_container_width=True, config={'displayModeBar': False})
+# st.plotly_chart(fig_timeline)
         fogg_data = data.get("chart_fogg", [])
         if fogg_data:
             df_fogg = pd.DataFrame(fogg_data)
+            
+            # 1. Création du graphique
             fig_fogg = px.scatter(
-                df_fogg, 
-                x="friction", 
-                y="dopamine", 
-                text="tache",
-                size="importance",
-                color="zone",
-                color_discrete_map={"Action": "#00ff00", "Procrastination": "#ff0000", "Piège": "#ffff00"},
-                hover_data=["description"]
+                df_fogg, x="friction", y="dopamine", text="tache", size="importance", color="zone",
+                color_discrete_map={"Action": "#2ecc71", "Procrastination": "#e74c3c", "Piège": "#f1c40f"},
+                template="plotly_white"
             )
-            fig_fogg.add_shape(type="line", x0=0, y0=0, x1=100, y1=100,
-                            line=dict(color="white", width=2, dash="dot"))
-            fig_fogg.update_traces(textposition='top center', marker=dict(opacity=0.8, line=dict(width=1, color='DarkSlateGrey')))
+            
+            # 2. La ligne de démarcation
+            fig_fogg.add_shape(type="line", x0=0, y0=0, x1=100, y1=100, line=dict(color="#bbb", width=2, dash="dot"))
+            
+            # 3. Optimisation des points (Texte en NOIR)
+            fig_fogg.update_traces(
+                textposition='top center', 
+                textfont=dict(color="#000000", size=11, family="Inter, sans-serif", weight="bold"),
+                marker=dict(opacity=0.9, line=dict(width=1, color='#fff'))
+            )
+            
+            # 4. Layout avec FORCAGE des couleurs d'axes
             fig_fogg.update_layout(
-                xaxis_title="Friction (Difficulté perçue)",
-                yaxis_title="Dopamine (Récompense anticipée)",
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(20,20,20,0.5)",
-                font=dict(color="white"),
-                showlegend=True
+                height=350,
+                
+                # TITRES DES AXES
+                xaxis_title="Difficulté (Friction)",
+                yaxis_title="Motivation (Dopamine)",
+                
+                font=dict(family="Inter, sans-serif"),
+                margin=dict(l=20, r=20, t=40, b=20),
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                
+                showlegend=True,
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, title=None, font=dict(color="#000000")),
+                
+                # --- C'EST ICI QU'ON FORCE LE NOIR ---
+                xaxis=dict(
+                    showgrid=True, 
+                    gridcolor='#e0e0e0', 
+                    range=[-5, 105],
+                    
+                    # Titre de l'axe (Abscisse)
+                    title_font=dict(color="#000000", size=14, weight="bold"),
+                    # Chiffres de l'axe
+                    tickfont=dict(color="#000000", size=12)
+                ),
+                
+                yaxis=dict(
+                    showgrid=True, 
+                    gridcolor='#e0e0e0', 
+                    range=[-5, 105],
+                    
+                    # Titre de l'axe (Ordonnée)
+                    title_font=dict(color="#000000", size=14, weight="bold"),
+                    # Chiffres de l'axe
+                    tickfont=dict(color="#000000", size=12)
+                )
             )
-            st.plotly_chart(fig_fogg, use_container_width=True)
-            st.info(f"💡 **Protocole de Déblocage :** {data.get('analysis_fogg', 'Calcul...')}")
-        else:
-            st.warning("Données Fogg indisponibles.")
-
-    # --- PAYWALL (TOUJOURS EN BAS) ---
-    st.markdown('<div class="locked-section">', unsafe_allow_html=True)
-    st.write("🔒 **RAPPORT NEURO-PSYCHOLOGIQUE COMPLET VERROUILLÉ**")
+            
+            st.plotly_chart(fig_fogg, use_container_width=True, config={'displayModeBar': False})
+            
     
-    col_blur, col_pitch = st.columns([1.5, 1])
-    with col_blur:
-        st.markdown("#### Analyse Croisée (OCEAN x Habitudes) :")
-        # On utilise les scores sauvegardés pour éviter le crash
-        conscience_val = saved_scores.get("Conscience", 50)
-        st.markdown(f'<div class="blur-text">Votre Conscience ({conscience_val}%) entre en conflit avec votre habitude "{saved_tendency}". L IA a détecté un risque élevé de paralysie décisionnelle...</div>', unsafe_allow_html=True)
-        st.markdown("#### Les Prompts Secrets Activés :")
-        st.markdown('<div class="blur-text"><System> Override circadian rythm for Night Owl profile...</div>', unsafe_allow_html=True)
 
-    with col_pitch:
-        st.info("📦 **PACK EXPERT (9.90€)**")
-        st.markdown("""
-        ✅ **Planning Intégral** (.ics)
-        ✅ **Analyse Neuro-Cross**
-        ✅ **Les Prompts Secrets**
-        """)
-        st.link_button("🔓 DÉBLOQUER MAINTENANT", "https://buy.stripe.com/00w7sN5ZW5gp9GggtP0RG00", type="primary")
+    # --------------------------------------------------------------------------
+    # 4. LA ZONE PAYWALL (MONEY ZONE)
+    # --------------------------------------------------------------------------
+    st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
+
+    # --- A. L'ANALYSE TEXTE (LE TEASING) ---
+    real_analysis = formatted_data.get('analysis_report', "<p>Analyse en cours...</p>")
     
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("### 🔓 Extrait de votre Mode d'Emploi")
+    
+    # On affiche le texte avec le dégradé blanc (Fade Out)
+    st.markdown(f"""
+<div class="paywall-card" style="position: relative; overflow: hidden; max-height: 280px; padding-bottom: 0; margin-bottom: 40px;">
+<div style="color: #1a1a1a; font-size: 16px; line-height: 1.7; text-align: justify;">
+{real_analysis}
+<br>
+<p><strong>[...LA SUITE DE L'ANALYSE EST RÉSERVÉE...]</strong></p>
+</div>
+<div style="
+position: absolute; bottom: 0; left: 0; width: 100%; height: 180px; 
+background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 70%);
+z-index: 2; pointer-events: none;">
+</div>
+</div>
+    """, unsafe_allow_html=True)
+
+    # --- SECTION PLANNING (TIMELINE 80/20) ---
+    # 1. VÉRIFICATION : Est-ce qu'on a bien reçu le planning ?
+# 1. PARTIE PLANNING (S'affiche seulement si les données sont là)
+    if "preview_day" in data:
+        st.markdown("### 🗓️ Optimisation de votre journée selon le 80/20")
+        st.caption(f"Architecture synchronisée pour le profil : {formatted_data.get('archetype', 'Non défini')}")
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        for bloc in data["preview_day"]:
+            heure = bloc.get("time", "--:--")
+            phase = bloc.get("phase", "Bloc non défini")
+            tag = bloc.get("tag_visible", "Focus")
+            secret = bloc.get("neuro_logic", "Contenu réservé...")
+
+            # On affiche la timeline
+            st.markdown(f"""
+            <div class="timeline-row">
+                <div class="time-col">{heure}</div>
+                <div class="card-col">
+                    <div class="card-title">
+                        {phase}
+                        <span style="font-size: 0.75rem; color: #2E7D32; background: #E8F5E9; padding: 4px 10px; border-radius: 12px; margin-left: 10px; vertical-align: middle; font-weight: 600;">
+                            {tag}
+                        </span>
+                    </div>
+                    <div class="blur-content" style="margin-top: 8px; line-height: 1.5;">
+                        {secret}
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+
+    # 2. PARTIE CARTE DE PAIEMENT (S'affiche TOUJOURS à la fin)
+    # Astuce : On met le HTML dans une variable collée à gauche pour éviter les bugs
+    st.markdown(f"""
+    <div style="
+    width: 100%;
+    max-width: 450px;
+    margin: 40px auto; 
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;">
+
+    <div style="font-size: 40px; margin-bottom: 10px;">🔐</div>
+
+    <h3 style="color: #111; font-weight: 900; margin: 0 0 10px 0; font-size: 22px;">
+    Débloquez votre Architecture
+    </h3>
+
+    <p style="color: #666; font-size: 14px; margin-bottom: 25px; line-height: 1.5;">
+    Accédez à votre analyse complète, vos graphiques et votre <strong>Planning Neuro-Ergonomique</strong> détaillé.
+    </p>
+
+    <a href="{STRIPE_LINK}" target="_blank" style="
+    display: block;
+    width: 100%;
+    background-color: #111;
+    color: #fff;
+    font-weight: 700;
+    padding: 16px 0;
+    border-radius: 12px;
+    text-decoration: none;
+    font-size: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease;">
+    OBTENIR MON DOSSIER (9.90€)
+    </a>
+
+    <div style="margin-top: 15px; font-size: 11px; color: #999; display: flex; justify-content: center; gap: 15px;">
+    <span>🔒 Paiement Sécurisé</span>
+    <span>⚡ Accès Immédiat</span>
+    </div>
+    </div>
+    <div style="height: 50px;"></div> 
+    """, unsafe_allow_html=True)

@@ -1,19 +1,19 @@
-import os
 import google.generativeai as genai
+import streamlit as st
 import datetime
 from ics import Calendar, Event
 import json
-import re
 import time
+import random
 from dotenv import load_dotenv
-from google.api_core import exceptions
+from google.oauth2 import service_account
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+import re
 
-# --- CONFIGURATION ---
-load_dotenv()
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# MODE MANUEL : True = Lit dummy_data.json / False = Appel API Gemini
-DEBUG_MODE = True 
+
+genai.configure(api_key = st.secrets["general"]["GEMINI_API_KEY"])
 
 generation_config = {
     "temperature": 0.7,
@@ -24,145 +24,173 @@ generation_config = {
 }
 
 model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash", 
+    model_name="gemini-2.5-flash", 
     generation_config=generation_config,
 )
 
-# --- OUTILS UTILITAIRES ---
 
-def clean_and_parse_json(text):
-    """Nettoyeur de JSON robuste"""
+
+
+def clean_and_parse_json(raw_text):
+    """
+    Nettoie la réponse de Gemini pour extraire le JSON pur,
+    même si le modèle bavarde ou met des balises Markdown.
+    """
     try:
+        # 1. Suppression des balises Markdown (```json ... ```)
+        text = re.sub(r"```json\s*", "", raw_text, flags=re.IGNORECASE)
+        text = re.sub(r"```", "", text)
+        
+        # 2. Parsing
         return json.loads(text)
-    except:
-        match = re.search(r"\{.*\}", text, re.DOTALL)
-        if match:
-            cleaned_text = match.group(0)
-            try:
-                return json.loads(cleaned_text)
-            except:
-                pass
-    return {"error": "Format JSON invalide", "planning": []}
+    
+    except json.JSONDecodeError as e:
+        # LOG DE DEBUG CRITIQUE (Pour voir ce qui a cassé dans la console)
+        print(f"🚨 ERREUR JSON: {e}")
+        print(f"💀 TEXTE REÇU: {raw_text[:500]}...") # On affiche le début pour comprendre
+        return None
+    
 
-def generate_ics_file(json_data):
-    c = Calendar()
-    try:
-        if isinstance(json_data, str): data = json.loads(json_data)
-        else: data = json_data
-        for item in data.get("planning", []):
-            e = Event()
-            e.name = item.get("titre", "Event")
-            e.begin = item.get("start_iso")
-            e.end = item.get("end_iso")
-            c.events.add(e)
-        return c.serialize()
-    except: return None
-
-# --- GENERATEUR DE PROMPT (Single Source of Truth) ---
-
-def _build_system_prompt(inputs):
-    """Construit le prompt unique pour éviter les duplications."""
+def _get_teaser_prompt(inputs):
     scores = inputs.get("scores", {})
     work_style = inputs.get("work_style", {})
-    context = inputs.get("context", {})
-    today_date = datetime.date.today().isoformat()
-
+    
     return f"""
-    SYSTEM: Tu es le Chaos Manager, une IA de planification neuro-ergonomique.
-    DATE: {today_date}
+    ROLE : Neuro-Architecte d'Élite & Bio-hacker.
+    TON : Fascinant, Autoritaire, "No-Bullshit". Tu es celui qui détient la clé du code source de leur cerveau.
     
-    1. PROFIL COGNITIF (HARDWARE):
-    - OCEAN: {json.dumps(scores)}
-    - Chronotype: {work_style.get('chronotype')} (Pic d'énergie)
-    - Mode Opératoire: {work_style.get('tendency')}
+    INPUT CIBLE :
+    - OCEAN : {json.dumps(scores)}
+    - Chronotype : {work_style.get('chronotype')}
+    - Profil : {work_style.get('architecture')}
     
-    2. MODALITÉS D'INTERVENTION (SOFTWARE):
-    - Architecture Requise: {work_style.get('architecture')} 
-      (Si 'Technique': focus code/infra. Si 'Éthique': focus valeurs/humain. Si 'Système': focus boucles/entropie.)
-    - Zone de Génie: {work_style.get('genius')} 
-      (Si 'Idéateur': prévoir phase divergente. Si 'Finisseur': prévoir checklist stricte.)
+    OBJECTIF : Générer le JSON de conversion pour la Landing Page.
+    
+    1. "archetype": CORRÉLATION MBTI ESTIMÉE.
+       - Analyse les scores OCEAN pour déduire le profil MBTI le plus probable (E/I, N/S, T/F, J/P).
+       - Format : "CODE - Le Nom" (ex: "ENTP - Le Visionnaire", "INFJ - L'Avocat").
+       - Sois cohérent : Score O élevé = N, Score C bas = P, etc.
+    
+    2. "rarity": SIGNATURE COGNITIVE (Pas de stat inventée).
+       - Identifie les 2 traits les plus marquants du profil (soit très élevés, soit très bas).
+       - Crée une étiquette qui résume cette tension.
+       - Exemples : "Haute Créativité / Faible Structure", "Empathie Radicale / Sensibilité au Stress", "Logique Implacable / Introversion Sociale".
+       - C'est ça qui rend le profil "unique", pas un chiffre au hasard.
+    
+    3. "teaser_html": LE DIAGNOSTIC 20/80 (environ 250 mots).
+       - OBJECTIF : Appliquer la Loi de Pareto. Identifie LE trait de personnalité dominant (parmi ses scores) qui cause 80% de ses échecs avec les méthodes classiques.
+       
+       - PARTIE A (La Friction Biologique) : 
+         Ne fais pas un cours général. Adresse-toi à LUI.
+         Explique pourquoi un agenda linéaire (9h-18h) est toxique *spécifiquement pour son profil*.
+         * Si "Conscience" basse : Explique que la rigidité crée du cortisol qui bloque son action.
+         * Si "Ouverture" haute : Explique que la routine tue sa dopamine et donc sa motivation.
+         * Si "Névrosisme" haut : Explique que la pression matinale épuise ses réserves avant midi.
+         Utilise des termes comme "Friction neuronale", "Coût métabolique", "Cycle d'énergie inversé".
+         
+       - PARTIE B (Le Pivot Stratégique) : 
+         Introduis la solution non pas comme un "effort" mais comme un "réglage".
+         "Votre erreur n'est pas le manque de volonté, c'est le mauvais timing. Pour obtenir 80% de résultats en plus avec 20% d'effort en moins, nous ne devons pas changer qui vous êtes, nous devons synchroniser vos tâches avec votre pic hormonal..."
+         
+       - IMPORTANT : Le texte doit s'arrêter net au milieu de la phrase qui allait révéler LE secret de son planning (les "..." dramatiques).
+    
+    4. "preview_day": L'ARCHITECTURE 80/20 (3 ou 4 blocs CLÉS seulement).
+       - RÈGLE D'OR (Adaptation Charge) :
+         * Si le score "Conscience" (Organisation) est < 40/100 : Ne mets JAMAIS plus de 1 seul bloc de Deep Work pur. Le reste doit être du "Sprint" ou de la "Créativité". Pas de discipline militaire.
+         * Si le score "Névrosisme" (Stress) est > 60/100 : Le premier bloc ne doit jamais être une tâche anxiogène (Admin/Urgence), mais une tâche "Starter" (Dopamine).
+       
+       - RÈGLE DU 80/20 (Le Pareto) :
+         * Un des blocs doit être identifié comme la "GOLDEN ZONE". C'est le moment où sa biologie permet d'abattre 80% du travail de la journée en 90 minutes.
 
-    3. MISSION & CONTEXTE:
-    - Routine Actuelle: {context.get('routine')}
-    - Facteurs Limitants: {context.get('blockers')}
-    - MISSION IMPÉRATIVE: {context.get('mission')}
+       - FORMAT JSON POUR CHAQUE BLOC :
+         * "time": Heure adaptée au Chronotype (Loup = Tard, Lion = Tôt).
+         * "phase": Titre Orienté Résultat (ex: "Le Levier 80/20", "Vidange Cortisol", "Sprint Créatif").
+         * "tag_visible": Une petite phrase courte visible (ex: "Impact Maximal • Zone de Génie").
+         * "neuro_logic": (CECI SERA FLOUTÉ). C'est l'explication neuro-stratégique.
+           Ne donne pas de conseil gadget (lumière/son).
+           Explique le lien Tâche <-> Hormone.
+           Exemple Admin : "Votre taux de cortisol est naturellement haut à cette heure. C'est le carburant idéal pour 'tuer' les tâches administratives sans douleur. Le faire plus tard vous coûterait 3x plus d'énergie."
+           Exemple Créa : "Votre cortex préfrontal est inhibé, laissant place aux connexions abstraites. C'est le seul moment pour la stratégie."
+    5. "DATA VISUALISATION" (La Preuve par l'Image).
+       - chart_energy (Courbe Circadienne) :
+         * DOIT respecter le Chronotype détecté !
+         * Si "Loup" (Soir) : Pic principal vers 18h-20h. Creux le matin.
+         * Si "Lion" (Matin) : Pic principal vers 07h-09h. Crash à 15h.
+         * Si "Ours" (Normal) : Pic vers 11h et 16h.
+         * L'utilisateur doit voir graphiquement que son énergie n'est PAS linéaire.
 
-    TACHE : Génère le JSON de planification stratégique.
-    
-    CONTRAINTES:
-    - Si Conscience < 30 : Gamifie les titres des tâches.
-    - Si Névrosisme > 70 : Ajoute des buffers de sécurité de 15min.
-    - Adapte le vocabulaire à l'Architecture choisie.
-    
-    OUTPUT FORMAT (JSON ONLY):
+       - chart_matrix (Matrice d'Impact) :
+         * Génère 5 points représentant des tâches typiques.
+         * Si score "Conscience" < 40 : Mets en avant des tâches "Quick Wins" (Faible Effort / Gros Impact) pour le motiver.
+         * Si score "Névrosisme" > 60 : Évite les tâches à "Haute Pression".
+
+       - chart_fogg (Motivation vs Friction) :
+         * Place un point "Projet de Rêve" (celui qu'il procrastine).
+         * Si "Ouverture" est haute mais "Conscience" basse : Place le point dans la zone "Haute Motivation" mais "Friction Trop Haute" (Zone d'échec). C'est pour lui montrer graphiquement pourquoi il échoue.
+
+    --- FORMAT JSON STRICT ---
     {{
-        "rarity": "Nom RPG",
-        "archetype": "Titre Pro",
-        "quote": "Citation",
-        "superpower": "Atout",
-        "kryptonite": "Faiblesse",
-        "analysis_global": "Analyse texte...",
-        "analysis_bio": "Analyse texte...",
-        "analysis_social": "Analyse texte...",
-        "analysis_fogg": "Analyse texte...",
-        "chart_energy": [{{"heure": 6, "niveau": 20}}],
-        "chart_matrix": [{{"tache": "Exemple", "impact": -50}}],
-        "chart_fogg": [{{"tache": "Exemple", "dopamine": 50, "friction": 50, "importance": 50, "zone": "Action", "description": "..."}}],
-        "planning": [
-            {{
-                "titre": "Action",
-                "start_iso": "{today_date}T09:00:00",
-                "end_iso": "{today_date}T10:00:00",
-                "categorie": "DeepWork",
-                "description": "Détail"
+        "archetype": "STRING (Code MBTI - Nom)",
+        "rarity": "STRING (Trait Dominant 1 / Trait Dominant 2)",
+        "superpower": "STRING",
+        "kryptonite": "STRING",
+        "teaser_html": "STRING HTML (Long, formaté avec <p> et <strong>, coupé net...)",
+        
+        "preview_day": [
+            {{ 
+                "time": "HH:MM", 
+                "phase": "NOM_PHASE", 
+                "tag_visible": "COURT TAG (ex: Impact 80/20)", 
+                "neuro_logic": "EXPLICATION FLOUTÉE (Pourquoi ce créneau ?)" 
+            }},
+            {{ 
+                "time": "HH:MM", 
+                "phase": "NOM_PHASE", 
+                "tag_visible": "...", 
+                "neuro_logic": "..." 
             }}
-        ]
+        ],
+        
+        "chart_energy": [ {{ "heure": "06", "niveau": 20 }}, {{ "heure": "08", "niveau": 50 }} ],
+        "chart_matrix": [ {{ "tache": "Nom Tache", "impact": 90, "effort": 20 }} ],
+        "chart_fogg": [ {{ "tache": "Projet Rêve", "friction": 80, "dopamine": 90, "zone": "Echec", "importance": 10 }} ]
     }}
     """
 
-# --- ORCHESTRATEUR PRINCIPAL ---
 
+# --- ORCHESTRATEUR SÉCURISÉ ---
 def parse_schedule(inputs):
-    
-    # 1. Génération du Prompt (Centralisée)
-    prompt = _build_system_prompt(inputs)
+    # On n'appelle plus qu'un seul prompt, court et rapide.
+    prompt = _get_teaser_prompt(inputs)
+    try:
+        response = model.generate_content(prompt)
+        return clean_and_parse_json(response.text) # On utilise toujours le nettoyeur !
+    except Exception as e:
+        print(f"Erreur Gemini: {e}")
+        return None
 
-    # 2. Affichage Terminal (Pour copier-coller si besoin)
-    print("\n" + "="*40)
-    print("🧠 PROMPT GÉNÉRÉ :")
-    print("="*40)
-    print(prompt) 
-    print("="*40 + "\n")
-
-    # 3. BRANCHEMENT
-    if DEBUG_MODE:
-        print("🔧 MODE DEBUG : Chargement depuis dummy_data.json...")
-        try:
-            with open("dummy_data.json", "r", encoding="utf-8") as f:
-                return f.read() # On renvoie le texte brut du JSON
-        except FileNotFoundError:
-            return json.dumps({
-                "rarity": "ERREUR CONFIG", 
-                "archetype": "Fichier dummy_data.json manquant",
-                "analysis_global": "Créez le fichier dummy_data.json à la racine.",
-                "planning": []
-            })
-    
-    # 4. MODE PROD (API)
-    else:
-        max_retries = 3
-        base_delay = 2 
-        print("📡 APPEL API GEMINI EN COURS...")
-        
-        for attempt in range(max_retries):
+def generate_ics_file(json_data):
+    c = Calendar()
+    data = json_data if isinstance(json_data, dict) else json.loads(json_data)
+    start_date_ref = datetime.date.today() + datetime.timedelta(days=1)
+    days = data.get("week_planning", [])
+    for i, day in enumerate(days):
+        current_date_str = (start_date_ref + datetime.timedelta(days=i)).isoformat()
+        for task in day.get("tasks", []):
             try:
-                response = model.generate_content(prompt)
-                return response.text
-            except exceptions.ResourceExhausted:
-                wait_time = base_delay * (2 ** attempt)
-                print(f"⚠️ Quota dépassé. Pause de {wait_time}s...")
-                time.sleep(wait_time)
-            except Exception as e:
-                return json.dumps({"error": f"Erreur Technique: {str(e)}"})
-        
-        return json.dumps({"error": "Quota Saturé - Réessayez plus tard"})
+                e = Event()
+                e.name = f"[{task.get('cat', 'FOCUS')}] {task.get('title')}"
+                e.begin = f"{current_date_str}T{task.get('start')}:00"
+                e.end = f"{current_date_str}T{task.get('end')}:00"
+                c.events.add(e)
+            except: continue
+    return c.serialize()
+
+def save_lead_to_gsheet(email, json_result_str, inputs):
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    try:
+        creds = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"],scopes=scope)
+        client = gspread.authorize(creds)
+        sheet = client.open("ChaosManager_Leads").sheet1
+        sheet.append_row([str(datetime.datetime.now()), email, inputs['context'].get('status'), inputs['work_style'].get('chronotype'), "Lead V2", json_result_str])
+    except: pass

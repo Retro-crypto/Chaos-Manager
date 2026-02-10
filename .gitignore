@@ -9,3 +9,7 @@ __pycache__/
 
 # Ignorer les fichiers système Mac/Windows inutiles
 .DS_Store
+
+#fichier json
+
+credentials.json
