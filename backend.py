@@ -193,4 +193,6 @@ def save_lead_to_gsheet(email, json_result_str, inputs):
         client = gspread.authorize(creds)
         sheet = client.open("ChaosManager_Leads").sheet1
         sheet.append_row([str(datetime.datetime.now()), email, inputs['context'].get('status'), inputs['work_style'].get('chronotype'), "Lead V2", json_result_str])
-    except: pass
+    except Exception as e:
+        print(f"⚠️ ERREUR CRITIQUE GSHEET : {e}") # Ça s'affichera dans tes logs Streamlit Cloud
+        # pass # On garde le silence pour l'utilisateur, mais on crie dans les logs
